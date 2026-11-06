@@ -38,6 +38,12 @@ class KeyModel extends Model
     /**
      * 用网关返回的 Key 列表刷新本地镜像（按 key_id upsert）
      *
+     * ★ host_id 的处理有过一次事故：网关早期不返回 host_id，本方法无条件
+     *   用 $item['host_id'] 覆盖本地值，于是每刷新一次列表，所有 Key 的
+     *   host_id 就被清零一次——按产品筛选永远为空，删除产品时一把 Key
+     *   也吊销不到。现在改为：网关给了就用网关的，没给（或给 0）就保留
+     *   本地已有的值，绝不主动把它抹掉。
+     *
      * @param int   $clientId
      * @param array $items 网关 /keys 的 items 数组
      * @return int 处理条数
@@ -53,9 +59,18 @@ class KeyModel extends Model
                 continue;
             }
 
+            $keyId = (int) $item['key_id'];
+            $exist = self::where('key_id', $keyId)->find();
+
+            $gatewayHostId = (int) ($item['host_id'] ?? 0);
+            if ($gatewayHostId <= 0 && !empty($exist)) {
+                # 网关没给，保留本地已知归属。
+                $gatewayHostId = (int) ($exist['host_id'] ?? 0);
+            }
+
             $row = [
                 'client_id'    => $clientId,
-                'host_id'      => (int) ($item['host_id'] ?? 0),
+                'host_id'      => $gatewayHostId,
                 'name'         => (string) ($item['name'] ?? ''),
                 'prefix'       => (string) ($item['key_prefix'] ?? ''),
                 'status'       => (string) ($item['status'] ?? 'active'),
@@ -66,9 +81,8 @@ class KeyModel extends Model
                 'update_time'  => $now,
             ];
 
-            $exist = self::where('key_id', (int) $item['key_id'])->find();
             if (empty($exist)) {
-                self::create(array_merge($row, ['key_id' => (int) $item['key_id']]));
+                self::create(array_merge($row, ['key_id' => $keyId]));
             } else {
                 $exist->save($row);
             }

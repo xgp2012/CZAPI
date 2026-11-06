@@ -16,7 +16,7 @@ use think\facade\Db;
  *   - 表名前缀 idcsmart_addon_{插件目录名}_*
  *
  * @author  CZAPI
- * @version 2.0.0
+ * @version 2.1.0
  */
 class IdcsmartLlmGateway extends Plugin
 {
@@ -26,7 +26,7 @@ class IdcsmartLlmGateway extends Plugin
         'title'       => 'LLM 网关',            // 插件名称
         'description' => '在魔方业务系统内管理 LLM API Key、模型与用量', // 插件描述
         'author'      => 'CZAPI',               // 开发者
-        'version'     => '2.0.0',               // 版本号
+        'version'     => '2.1.0',               // 版本号
     ];
 
     # 五张业务表的表名后缀（完整表名 = idcsmart_addon_idcsmart_llm_gateway_ + 后缀）
@@ -169,7 +169,58 @@ class IdcsmartLlmGateway extends Plugin
             Db::execute($statement);
         }
 
+        $this->addMissingColumns();
+
         return true;
+    }
+
+    /**
+     * 给已存在的表补列
+     *
+     * 为什么必须单独做：schemaSql() 全是 CREATE TABLE IF NOT EXISTS，
+     * 表一旦存在就整体跳过——**新增的列永远不会被加上**。已安装的实例升级后
+     * 仍缺列，随后每次写该表都会抛 "Unknown column"，表现为"后台一打开就报错"。
+     *
+     * 这里逐列探测再补，全程 try/catch：补列失败不阻断升级，
+     * 但会在系统日志里留下一条可检索的记录。
+     *
+     * @return void
+     */
+    private function addMissingColumns()
+    {
+        # 表后缀 => [列名 => 列定义]
+        $columns = [
+            'pushlog' => [
+                # 重投时按原 HTTP 方法发送，不能一律当 POST。
+                'method' => "`method` varchar(8) NOT NULL DEFAULT 'POST' COMMENT '重投时使用的HTTP方法'",
+            ],
+        ];
+
+        foreach ($columns as $suffix => $defs) {
+            $table = 'idcsmart_addon_idcsmart_llm_gateway_' . $suffix;
+
+            foreach ($defs as $column => $definition) {
+                try {
+                    # 用参数绑定而不是自己拼引号：Db::quote 在部分 ThinkPHP 版本里不存在。
+                    $exists = Db::query("SHOW COLUMNS FROM `{$table}` LIKE ?", [$column]);
+                    if (!empty($exists)) {
+                        continue;
+                    }
+
+                    Db::execute("ALTER TABLE `{$table}` ADD COLUMN {$definition}");
+                } catch (\Throwable $e) {
+                    try {
+                        active_log(
+                            '[LLM网关] 补列失败 ' . $table . '.' . $column . '：' . $e->getMessage(),
+                            'llm_gateway',
+                            0
+                        );
+                    } catch (\Throwable $ignore) {
+                        # 日志本身失败就放弃，不能因此中断升级流程。
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -313,6 +364,7 @@ class IdcsmartLlmGateway extends Plugin
             "CREATE TABLE IF NOT EXISTS `idcsmart_addon_idcsmart_llm_gateway_pushlog` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `endpoint` varchar(128) NOT NULL DEFAULT '' COMMENT '内部接口路径，如 /internal/v10/credit',
+  `method` varchar(8) NOT NULL DEFAULT 'POST' COMMENT '重投时使用的HTTP方法',
   `payload` text COMMENT '请求体JSON',
   `ref_type` varchar(32) NOT NULL DEFAULT '' COMMENT '幂等凭证类型',
   `ref_id` varchar(64) NOT NULL DEFAULT '' COMMENT '幂等凭证ID',

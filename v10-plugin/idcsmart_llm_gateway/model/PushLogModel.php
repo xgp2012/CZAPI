@@ -25,6 +25,7 @@ class PushLogModel extends Model
     protected $schema = [
         'id'            => 'int',
         'endpoint'      => 'string',
+        'method'        => 'string',
         'payload'       => 'string',
         'ref_type'      => 'string',
         'ref_id'        => 'string',
@@ -48,11 +49,12 @@ class PushLogModel extends Model
      * @param string $refId
      * @return int pushlog id
      */
-    public static function enqueue($endpoint, array $payload, $refType, $refId)
+    public static function enqueue($endpoint, array $payload, $refType, $refId, $method = 'POST')
     {
         $now = time();
         $model = self::create([
             'endpoint'      => (string) $endpoint,
+            'method'        => strtoupper((string) $method),
             'payload'       => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'ref_type'      => (string) $refType,
             'ref_id'        => (string) $refId,

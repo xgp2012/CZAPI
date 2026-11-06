@@ -284,11 +284,9 @@ func handleConsoleManualCredit(c *gin.Context) {
 		return
 	}
 
-	admin := CurrentAdmin(c)
-	operator := "console"
-	if admin != nil {
-		operator = admin.Username
-	}
+	// 操作人用于账本备注留痕。双凭据下可能是 new-api 管理员，
+	// 也可能是旧 czapi_admin 会话，统一由 ConsoleOperator 归一。
+	operator := ConsoleOperator(c)
 
 	// ref_id 用时间戳 + 操作人，保证每次手工调额都是独立凭证，不会被幂等挡掉。
 	refId := "ADMIN-" + strconv.FormatInt(time.Now().UnixNano(), 10)

@@ -24,7 +24,17 @@ var (
 
 // KeyView 是返回给 V10 的 Key 视图。**永不包含明文**，只给前缀。
 type KeyView struct {
-	KeyId       int      `json:"key_id"`
+	KeyId int `json:"key_id"`
+	// HostId 是这把 Key 所属的 V10 产品（host）。
+	//
+	// V10 侧多处依赖它：前台按产品过滤 Key(/console/v1/llm/keys?host_id=)、
+	// 产品删除时吊销该 host 下的全部 Key、本地镜像表 key 的 host_id 列。
+	// 早期这里没有该字段，导致 V10 每轮 syncFromGateway 都把 host_id 覆盖成 0，
+	// 于是"按产品筛选"永远为空、删除产品时一把 Key 也吊销不到。
+	//
+	// 事实来源是 token.Name 上由 keyName() 追加的 "#<hostId>" 后缀：
+	// new-api 的 token 表没有 host 列，加列会牵动上游 schema，因此用命名约定承载。
+	HostId      int64    `json:"host_id"`
 	KeyPrefix   string   `json:"key_prefix"`
 	Name        string   `json:"name"`
 	Status      string   `json:"status"`
@@ -35,6 +45,36 @@ type KeyView struct {
 	CreatedAt   int64    `json:"created_at"`
 	UsedQuota   int64    `json:"used_quota"`
 	RemainQuota int64    `json:"remain_quota"`
+}
+
+// hostIdFromName 从 token.Name 里解析 keyName() 追加的产品后缀。
+//
+// keyName() 生成的形如 "生产环境#90001"；没有后缀时返回 0，表示这把 Key
+// 不属于任何 V10 产品（客户在网关侧自建的、或历史遗留的 Key）。
+func hostIdFromName(name string) int64 {
+	idx := strings.LastIndex(name, "#")
+	if idx < 0 || idx == len(name)-1 {
+		return 0
+	}
+	hostId, err := strconv.ParseInt(name[idx+1:], 10, 64)
+	if err != nil || hostId <= 0 {
+		return 0
+	}
+	return hostId
+}
+
+// plainKeyName 去掉 "#hostId" 后缀，返回客户当初起的名字。
+//
+// 没有这一步，V10 界面上会显示 "生产环境#90001"，客户看到的是实现细节。
+func plainKeyName(name string) string {
+	idx := strings.LastIndex(name, "#")
+	if idx <= 0 {
+		return name
+	}
+	if hostIdFromName(name) <= 0 {
+		return name
+	}
+	return name[:idx]
 }
 
 // 对外的 Key 状态词表。与 new-api 的 token 状态数字解耦，V10 只认这三个。
@@ -161,7 +201,10 @@ func applyKeyRestrictions(token *model.Token, models []string, ips []string) {
 }
 
 // ListKeys 列出某客户的全部 Key（不含明文）。
-func ListKeys(site *V10Site, clientId int64) ([]KeyView, error) {
+//
+// hostId 为 0 表示不按产品过滤。过滤在内存里做：host 归属编码在 token.Name 后缀中，
+// 不是独立列，SQL 里无法可靠地用 LIKE 精确匹配（"#9" 会误伤 "#90"）。
+func ListKeys(site *V10Site, clientId int64, hostId int64) ([]KeyView, error) {
 	account, err := GetAccount(site, clientId)
 	if err != nil {
 		return nil, err
@@ -176,7 +219,11 @@ func ListKeys(site *V10Site, clientId int64) ([]KeyView, error) {
 	}
 	views := make([]KeyView, 0, len(tokens))
 	for i := range tokens {
-		views = append(views, toKeyView(&tokens[i]))
+		view := toKeyView(&tokens[i])
+		if hostId > 0 && view.HostId != hostId {
+			continue
+		}
+		views = append(views, view)
 	}
 	return views, nil
 }
@@ -211,21 +258,27 @@ func UpdateKey(site *V10Site, keyId int, req UpdateKeyRequest) (*KeyView, error)
 	}
 
 	if req.Name != nil {
-		name := strings.TrimSpace(*req.Name)
-		if name != "" {
-			runes := []rune(name)
-			if len(runes) > 50 {
-				name = string(runes[:50])
-			}
-			token.Name = name
+		trimmed := strings.TrimSpace(*req.Name)
+		if trimmed != "" {
+			// 必须带上门牌号重新拼一次：host 归属就编码在这个后缀里，
+			// 直接写 token.Name = 新名字会把 host_id 抹掉，于是这把 Key
+			// 从"产品 A 的 Key"变成"不属于任何产品的 Key"，
+			// 随后按产品过滤查不到、删产品时也吊销不到。
+			token.Name = keyName(trimmed, hostIdFromName(token.Name))
 		}
 	}
 	if req.Status != nil {
 		switch *req.Status {
 		case KeyStatusActive:
 			token.Status = common.TokenStatusEnabled
-		case KeyStatusSuspended, KeyStatusRevoked:
+		case KeyStatusSuspended:
+			// 暂停是可恢复的：用 disabled，套餐恢复时会被拉回 enabled。
 			token.Status = common.TokenStatusDisabled
+		case KeyStatusRevoked:
+			// 吊销是永久的：必须落到 expired，与 RevokeKey 保持一致。
+			// 早期这里和 suspended 一起映射成 disabled，于是"吊销"被套餐恢复
+			// 流程复活，客户已经作废的 Key 又活了。
+			token.Status = common.TokenStatusExpired
 		default:
 			return nil, errors.New("status must be active/suspended/revoked")
 		}
@@ -287,8 +340,9 @@ func RevokeKey(site *V10Site, clientId int64, keyId int) error {
 func toKeyView(token *model.Token) KeyView {
 	view := KeyView{
 		KeyId:       token.Id,
+		HostId:      hostIdFromName(token.Name),
 		KeyPrefix:   token.GetMaskedKey(),
-		Name:        token.Name,
+		Name:        plainKeyName(token.Name),
 		Status:      keyStatusOf(token),
 		Models:      token.GetModelLimits(),
 		IpWhitelist: token.GetIpLimits(),

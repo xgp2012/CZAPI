@@ -41,11 +41,18 @@ export function buildSetupPayload(
   values: SetupFormValues,
   rootInitialized: boolean
 ) {
-  const { usageMode, ...rest } = values
+  const { usageMode, v10AppId, v10SiteName, ...rest } = values
 
-  const basePayload = {
+  const basePayload: Record<string, unknown> = {
     SelfUseModeEnabled: usageMode === 'self',
     DemoSiteEnabled: usageMode === 'demo',
+  }
+
+  // 只有填了 App ID 才带上 V10 字段，避免把一个空引导步骤写进后端。
+  const appId = v10AppId.trim()
+  if (appId !== '') {
+    basePayload.v10_app_id = appId
+    basePayload.v10_site_name = v10SiteName.trim()
   }
 
   if (rootInitialized) {

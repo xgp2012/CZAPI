@@ -128,18 +128,34 @@ func handleConsoleLogin(c *gin.Context) {
 	})
 }
 
+// handleConsoleMe 返回当前操作人。
+//
+// 融合后有两种凭据来源：旧 czapi_admin Cookie 与 new-api 管理员会话。
+// 前者还有 must_change_password 这类旧语义，后者没有（改密走 new-api 自己的
+// 账号安全页），因此这里按来源分别回填，前端据 source 决定改密入口。
 func handleConsoleMe(c *gin.Context) {
-	account := CurrentAdmin(c)
-	if account == nil {
+	if account := CurrentAdmin(c); account != nil {
+		common.ApiSuccess(c, gin.H{
+			"id":                   account.Id,
+			"username":             account.Username,
+			"must_change_password": account.MustChangePassword,
+			"last_login_at":        account.LastLoginAt,
+			"version":              common.Version,
+			"source":               "legacy",
+		})
+		return
+	}
+
+	name := ConsoleOperator(c)
+	if name == "" || name == "console" {
 		common.ApiErrorStatus(c, http.StatusUnauthorized, ErrAdminUnauthorized)
 		return
 	}
 	common.ApiSuccess(c, gin.H{
-		"id":                   account.Id,
-		"username":             account.Username,
-		"must_change_password": account.MustChangePassword,
-		"last_login_at":        account.LastLoginAt,
+		"username":             name,
+		"must_change_password": false,
 		"version":              common.Version,
+		"source":               "dashboard",
 	})
 }
 
@@ -156,6 +172,12 @@ type consoleChangePasswordRequest struct {
 func handleConsoleChangePassword(c *gin.Context) {
 	account := CurrentAdmin(c)
 	if account == nil {
+		// 融合后管理员用的是 new-api 账号，改密要走它自己的账号安全页；
+		// 这里给一句明确的指引，而不是 401，避免被前端当成会话过期踢下线。
+		if _, ok := dashboardAdminName(c); ok {
+			common.ApiErrorMsg(c, "该账号的密码请在「个人设置 → 安全」中修改")
+			return
+		}
 		common.ApiErrorStatus(c, http.StatusUnauthorized, ErrAdminUnauthorized)
 		return
 	}

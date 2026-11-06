@@ -103,6 +103,19 @@ export function CompleteStep({ status, values }: CompleteStepProps) {
             </dt>
             <dd className='text-sm font-semibold'>{t(usageLabelKey)}</dd>
           </div>
+
+          <Separator />
+
+          <div className='space-y-1.5'>
+            <dt className='text-muted-foreground text-xs font-medium tracking-wide uppercase'>
+              {t('V10 site')}
+            </dt>
+            <dd className='text-sm font-semibold'>
+              {values.v10AppId.trim() === ''
+                ? t('Skipped — create it later from V10 Operations')
+                : values.v10AppId.trim()}
+            </dd>
+          </div>
         </dl>
       </div>
     </div>

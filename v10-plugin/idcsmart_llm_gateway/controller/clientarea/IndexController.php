@@ -84,14 +84,20 @@ class IndexController extends PluginBaseController
             'data'   => [
                 'account'        => [
                     'client_id' => (int) $clientId,
-                    'email'         => (string) ($this->request->client_name ?? ''),
-                    'status'        => (int) ($quota['status'] ?? 1),
+                    // 早期这里写的是 $this->request->client_name 冒充 email，
+                    // 前台概览会显示出客户自己的名字却标成"邮箱"。网关 /accounts/quota
+                    // 本来就不返回 email（V10 客户不靠邮箱登录），这里直接不编造。
+                    'status'    => (int) ($quota['status'] ?? 1),
                 ],
-                'balance_micros' => (int) ($quota['balance_micros'] ?? 0),
-                'subscriptions'  => $quota['subscriptions'] ?? [],
-                'today'          => $today,
-                'month'          => $month,
-                'trend'          => $trend,
+                'balance_micros'  => (int) ($quota['balance_micros'] ?? 0),
+                'balance_amount'  => (string) ($quota['balance_amount'] ?? '0.000000'),
+                'subscriptions'   => $quota['subscriptions'] ?? [],
+                'today'           => $today,
+                'month'           => $month,
+                'trend'           => $trend,
+                // 用量口径不一：网关可用时是实时值，否则是本地日快照（可能滞后一天）。
+                // 前端据此提示"数据可能滞后"，避免客户拿降级数据质疑账单。
+                'stale'           => (int) $todaySummary['code'] !== LlmApi::CODE_OK,
             ],
         ]);
     }

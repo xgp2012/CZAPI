@@ -39,8 +39,8 @@
 
 | 前端 | 源码 | 产物 | 访问路径 |
 | --- | --- | --- | --- |
-| 客户控制台（new-api 原生，React） | `gateway/web/` | `gateway/web/dist` | `/console/` |
-| 运维后台（Vue3 + Element Plus） | `gateway/admin-ui/` | `gateway/adminui/dist` | `/admin/` |
+| 客户控制台（React，含「V10 运营」分组） | `gateway/web/` | `gateway/web/dist` | `/console/` |
+| 旧运维后台（Vue3 + Element Plus，兼容保留） | `gateway/admin-ui/` | `gateway/adminui/dist` | `/admin/` |
 
 `main.go` 里是 `//go:embed web/dist`，`adminui/adminui.go` 里是 `//go:embed all:dist`。
 **任一产物不存在时 Go 根本编不过**，不是"跑起来页面空白"，而是编译期直接失败。
@@ -381,14 +381,24 @@ SQL_DSN=postgres://user:pass@127.0.0.1:5432/czapi_gw?sslmode=disable
 
 ### 2. 初始化管理员
 
-这里有两套互不相干的账号，别混用：
+运维面已并入客户控制台，**日常运维不再需要单独登录一套账号**：
 
 | 用途 | 入口 | 账号来源 |
 | --- | --- | --- |
-| **日常运维**（站点/额度/账本/Key/用量） | `/admin/` | 网关首次启动自动创建，默认 `admin` / `admin`，**强制改密** |
-| new-api 原生后台（建套餐、渠道、模型） | `/console/` | 手工调用 `/api/setup` 初始化，只能用一次 |
+| **日常运维 + 建套餐/渠道/模型** | `/console/` | 安装向导创建，或 `/api/setup` 初始化 |
+| 旧的独立运维后台（保留兼容） | `/admin/` | 网关首次启动自动创建，默认 `admin` / `admin`，**强制改密** |
 
-#### 2.1 运维后台 `/admin/`（推荐日常先用这个）
+`/console/` 侧边栏有「V10 运营」分组，包含概览、站点、托管账户、账本、Key、
+订阅与用量七页，与 new-api 原生页面共用同一套会话。旧的 `/admin/` 仍可访问
+（走 `czapi_admin` Cookie），但功能已在控制台侧复刻，新部署直接用 `/console/`。
+
+#### 2.1 客户控制台 `/console/`（推荐）
+
+首次打开会进入安装向导：数据库检查 → 管理员账号 → 使用模式 → **V10 站点（可跳过）**
+→ 确认初始化。在「V10 站点」填 App ID，初始化时会顺手建好站点并把明文密钥显示
+**一次**，照抄进 V10 插件即可；留空则之后到「V10 运营 → 站点」补建。
+
+#### 2.2 旧运维后台 `/admin/`（兼容保留）
 
 浏览器直接打开：
 
@@ -698,6 +708,8 @@ systemctl status czapi --no-pager; systemctl reset-failed czapi
   > 各自带不同 `ref_id`（财务上也更好对账）。
 - 多副本部署时 nonce 去重是**进程内**的。单副本无问题；多副本下同一 nonce 可能在不同副本各通过一次。
   签名本身仍安全（nonce 只防重放，不防伪造），但严格的一次性语义需要外置存储。
-- 控制台前端是**上游 new-api 控制台**，只加了 `/v10/login` 这一个 SSO 落地路由。
-  `/v10/login` 已验证可访问并完成换会话，但**页面品牌文案仍沿用上游默认值**，
-  未按本项目做视觉定制。若 V10 用 iframe 嵌入，还需按 V10 的主题再做一轮外观调整。
+- 控制台已并入 V10 运营面：`/console/` 侧边栏的「V10 运营」分组提供站点、
+  托管账户、账本、Key、订阅与用量六类运维页，与 new-api 原生页面共用同一套
+  会话与鉴权。旧的 `/admin/`（Vue）仍保留，但不再是主路径；两套凭据
+  （new-api 管理员会话 / `czapi_admin` Cookie）由同一个中间件识别。
+  页面品牌文案仍沿用上游默认值，未按本项目做视觉定制。

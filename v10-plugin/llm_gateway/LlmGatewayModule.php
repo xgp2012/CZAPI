@@ -21,7 +21,7 @@ use think\facade\Db;
  * ============================================================================
  *
  * @author  CZAPI
- * @version 2.0.0
+ * @version 2.1.0
  */
 class LlmGatewayModule
 {
@@ -34,7 +34,7 @@ class LlmGatewayModule
     {
         return [
             'display_name' => 'LLM 网关套餐',
-            'version'      => '2.0.0',
+            'version'      => '2.1.0',
             'description'  => '在 V10 内售卖 LLM API 套餐：开通即绑定 host、暂停即封 Key、续费原地延长',
         ];
     }

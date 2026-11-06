@@ -3,12 +3,14 @@ package v10
 import (
 	"errors"
 	"math"
+	"net/http/httptest"
 	"net/url"
 	"path/filepath"
 	"testing"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -232,8 +234,47 @@ func TestIsManagedAccount(t *testing.T) {
 	assert.False(t, IsManagedAccount(-1))
 }
 
-// TestIsDuplicateKeyAcrossDialects 保护"唯一冲突必须被识别"这条约定。
+// TestKeyHostIdRoundTrip 保护"Key 的产品归属能够往返"这条约定。
 //
+// 背景（真实事故）：KeyView 早期没有 host_id 字段，host 归属只以 "#<hostId>"
+// 后缀的形式藏在 token.Name 里，而 V10 侧拿不到它。于是：
+//   - 前台按产品筛选 Key 永远为空；
+//   - 删除产品时一把 Key 也吊销不到，客户删了产品还能继续用。
+//
+// 后来补了 host_id，但如果改名时把后缀丢掉，归属同样会断——所以这里
+// 同时锁住"生成"与"解析"两个方向，以及改名的往返。
+func TestKeyHostIdRoundTrip(t *testing.T) {
+	cases := []struct {
+		name      string
+		input     string
+		hostId    int64
+		plainName string
+	}{
+		{"带产品后缀", "生产环境#90001", 90001, "生产环境"},
+		{"无产品后缀", "临时调试", 0, "临时调试"},
+		{"后缀不是数字", "a#b", 0, "a#b"},
+		{"后缀为0", "a#0", 0, "a#0"},
+		{"名字里本就有井号", "a#1#90001", 90001, "a#1"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.hostId, hostIdFromName(tc.input))
+			assert.Equal(t, tc.plainName, plainKeyName(tc.input))
+		})
+	}
+
+	// 关键回归：改名必须保留原产品的门牌号，否则这把 Key 会从
+	// "产品 90001 的 Key"悄悄变成"不属于任何产品的 Key"。
+	renamed := keyName("新名字", hostIdFromName("旧名字#90001"))
+	assert.Equal(t, "新名字#90001", renamed)
+	assert.Equal(t, int64(90001), hostIdFromName(renamed))
+	assert.Equal(t, "新名字", plainKeyName(renamed))
+
+	// 没有归属的 Key 改名后仍然没有归属，不能被凭空加上后缀。
+	assert.Equal(t, "新名字", keyName("新名字", 0))
+}
+
 // 背景（真实事故）：本函数原来只匹配英文字样，而上线的 PostgreSQL 实例
 // lc_messages 是中文，报错是「重复键违反唯一约束 (SQLSTATE 23505)」。
 // 结果重放请求没有被识别成幂等命中，而是当成普通错误返回 400——
@@ -267,6 +308,84 @@ func TestIsDuplicateKeyAcrossDialects(t *testing.T) {
 			assert.Equal(t, tc.want, isDuplicateKey(tc.err))
 		})
 	}
+}
+
+// TestDashboardAdminNameGatesOnRole 钉住融合后运营面鉴权的核心判定。
+//
+// 这里守的是一个安全边界：运营面能看到全部客户的额度与 Key，因此只有
+// new-api 的管理员会话（role >= RoleAdminUser 且能取到用户名）才放行；
+// 普通用户与匿名请求必须被拒，否则一个客户的 Key 就能读到别家的余额。
+func TestDashboardAdminNameGatesOnRole(t *testing.T) {
+	cases := []struct {
+		name     string
+		role     any
+		hasRole  bool
+		username any
+		wantOK   bool
+		wantName string
+	}{
+		{name: "管理员放行", role: common.RoleAdminUser, hasRole: true, username: "ops", wantOK: true, wantName: "ops"},
+		{name: "超级管理员放行", role: common.RoleRootUser, hasRole: true, username: "root", wantOK: true, wantName: "root"},
+		// int64/float64 是中间件跳转后可能出现的类型，必须同样识别。
+		{name: "int64 角色", role: int64(common.RoleAdminUser), hasRole: true, username: "ops", wantOK: true, wantName: "ops"},
+		{name: "float64 角色", role: float64(common.RoleAdminUser), hasRole: true, username: "ops", wantOK: true, wantName: "ops"},
+		{name: "普通用户拒绝", role: common.RoleCommonUser, hasRole: true, username: "customer", wantOK: false},
+		{name: "匿名拒绝", role: nil, hasRole: false, username: nil, wantOK: false},
+		// role 达标但用户名缺失属于上下文不完整，按未登录处理更安全。
+		{name: "缺用户名拒绝", role: common.RoleAdminUser, hasRole: true, username: nil, wantOK: false},
+		{name: "空用户名拒绝", role: common.RoleAdminUser, hasRole: true, username: "", wantOK: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+			if tc.hasRole {
+				c.Set("role", tc.role)
+			}
+			if tc.username != nil {
+				c.Set("username", tc.username)
+			}
+
+			name, ok := dashboardAdminName(c)
+			assert.Equal(t, tc.wantOK, ok)
+			assert.Equal(t, tc.wantName, name)
+		})
+	}
+}
+
+// TestCreateSiteStoresOnlyCiphertext 钉住安装向导建站这条路径的三条约定。
+//
+// 向导会把明文 secret 直接回显给部署方（只此一次），因此"库里绝不能出现明文"
+// 是这个功能的正确性前提，而不是实现细节：一旦存了明文，任何拿到数据库的人
+// 都能伪造 V10 请求。重复 app_id 必须给出 ErrSiteExists，否则向导重试会静默
+// 覆盖上一把密钥，让已经配好的 V10 插件突然 401。
+func TestCreateSiteStoresOnlyCiphertext(t *testing.T) {
+	db := newTestDB(t)
+
+	secret, err := GenerateSiteSecret()
+	require.NoError(t, err)
+	require.NotEmpty(t, secret)
+
+	site, err := CreateSite("czapi-setup-test", "V10 Business System", secret)
+	require.NoError(t, err)
+	require.NotZero(t, site.Id)
+	assert.Equal(t, "czapi-setup-test", site.AppId)
+	assert.NotEqual(t, secret, site.SecretEnc, "库中必须是密文而不是明文")
+	assert.NotContains(t, site.SecretEnc, secret)
+	assert.Equal(t, secretPrefix(secret), site.SecretPrefix)
+
+	// 密文必须能还原成原 secret，否则 V10 签名校验会全线失败。
+	plain, err := DecryptSecret(site)
+	require.NoError(t, err)
+	assert.Equal(t, secret, plain)
+
+	// 同一个 app_id 再来一次必须明确报冲突，不能静默覆盖。
+	_, err = CreateSite("czapi-setup-test", "dup", secret)
+	require.ErrorIs(t, err, ErrSiteExists)
+
+	var count int64
+	require.NoError(t, db.Model(&V10Site{}).Where("app_id = ?", "czapi-setup-test").Count(&count).Error)
+	assert.Equal(t, int64(1), count)
 }
 
 // newTestDB 用独立的临时 SQLite 文件建库，避免测试之间互相污染。

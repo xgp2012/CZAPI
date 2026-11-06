@@ -85,15 +85,12 @@ V10_BOOTSTRAP_APP_SECRET="$(openssl rand -hex 32)" \
 V10_CONSOLE_BASE_URL=http://127.0.0.1:10000 \
 ./czapi-gw
 
-# 3. 运维后台（日常管理用这个）
-#    浏览器打开 http://127.0.0.1:10000/admin/
-#    首次登录 admin / admin，登录后强制改密
+# 3. 首次打开 http://127.0.0.1:10000/console/ 会进入安装向导
+#    数据库检查 → 管理员账号 → 使用模式 → V10 站点（可跳过）→ 确认初始化
+#    在「V10 站点」一步填 App ID，初始化时会顺手建好站点并把密钥显示一次，
+#    照抄进 V10 插件即可；留空则之后到「V10 运营 → 站点」补建。
 
-# 4. new-api 原生后台的管理员（建套餐时才需要，用户名 ≤12 字符）
-curl -X POST http://127.0.0.1:10000/api/setup -H 'Content-Type: application/json' \
-  -d '{"username":"rootadmin","password":"<强密码>","confirmPassword":"<强密码>"}'
-
-# 5. 验收
+# 4. 验收
 php scripts/v10-verify-all.php http://127.0.0.1:10000 <app_id> <secret>
 ```
 
@@ -134,9 +131,10 @@ SSO 会话、密钥轮换、用户面封锁）。
   `v10_refs` 唯一约束。MySQL ≥ 5.7.8 因本机无实例、无 Docker **未验证**——
   代码避开了方言（聚合在 Go 侧做、行锁走 `lockForUpdate`），但 MySQL 的
   唯一冲突错误分支没在真实实例上跑到过。上生产前必须补测。
-- **控制台是上游 new-api 界面 + 一个 SSO 落地路由。** `/v10/login` 已实现并验证：
-  读 fragment 里的票据 → 换会话 → 跳控制台。但页面文案与视觉仍是上游默认值，
-  未做本项目定制；若用 iframe 嵌入 V10，还需按 V10 主题调整外观。
+- **控制台已融合 V10 运营面。** 站点、托管账户、账本、Key、订阅、用量六类运维页面
+  已并入 React 控制台的「V10 运营」分组（`/v10/*`），与 new-api 原生页面共用同一套
+  登录与侧边栏，后台鉴权走双凭据中间件：new-api 管理员会话与旧 `czapi_admin`
+  cookie 都能进。旧的 Vue `/admin/` 仍可访问，但不再是主路径。
 - **nonce 去重是进程内的。** 单副本无问题；多副本下同一 nonce 可能各通过一次。
   签名本身仍安全（nonce 只防重放），但严格一次性语义需外置存储。
 
@@ -168,9 +166,12 @@ SSO 会话、密钥轮换、用户面封锁）。
 | `main.go` | 在 `model.InitOptionMap()` 之后调用 `v10.Bootstrap()` |
 | `router/main.go`、`router/api-router.go` | 挂载 `/internal/v10`、`/api/v10/*` 与 `/api/v10/admin/*`；给自服务付费路由挂身份守卫 |
 | `router/web-router.go` | 用按路径段匹配的 `isAPIPath()` 取代 `HasPrefix("/v1")`，修复 `/v10/login` 被误判为 API 路径 |
-| `controller/setup.go` | 初始化后重新施加 V10 用户面约束 |
+| `controller/setup.go` | 初始化后重新施加 V10 用户面约束；新增可选「V10 站点」步骤，建站并一次性回显密钥 |
+| `middleware/access_token_routes.go` | 为 `/api/v10/admin/*` 与 `/api/v10/console/*` 声明访问令牌规则（一律 session） |
 | `model/v10_cache_bridge.go`（新增） | 导出额度缓存同步函数 |
 | `web/src/features/auth/sso/`（新增）、`web/src/routes/v10/login.tsx`（新增） | SSO 票据登录页 |
+| `web/src/features/v10/`（新增）、`web/src/routes/_authenticated/v10/`（新增） | V10 运营面并入 React 控制台（概览/站点/账户/账本/Key/订阅/用量） |
+| `web/src/features/setup/` | 安装向导新增可选「V10 站点」步骤，初始化后一次性展示密钥 |
 | `web/src/components/layout/components/footer.tsx` | 补上 Section 7(b) 要求的**逐字**署名行并附原项目链接 |
 
 完整许可见 [`gateway/LICENSE`](gateway/LICENSE) 与
@@ -193,6 +194,6 @@ scripts/                端到端验收（插件契约、host 生命周期、SSO
 legacy/                 早期自建方案（只读参考，已被取代；见 legacy/README.md）
 ```
 
-运维后台 `/admin/` 与客户控制台 `/console/` 是两套独立前端：
-前者给运维管站点、额度、账本、Key、host、报表；后者是 new-api 原生控制台，
-只在建套餐、配渠道这类场景用。
+运维面已并入客户控制台：`/console/` 是唯一入口，new-api 原生页面（渠道、模型、
+用户、系统设置）与「V10 运营」分组（站点、托管账户、账本、Key、订阅、用量）共用
+同一套会话与侧边栏。旧的 Vue `/admin/` 仍保留可访问，但功能已在 React 侧复刻。

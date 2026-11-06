@@ -35,25 +35,38 @@ class UsageModel extends Model
     ];
 
     /**
-     * upsert 一天的快照（按 key_id + day 幂等）
+     * upsert 一天的快照（按 client + host + key + day 幂等）
+     *
+     * ★ 入参 $bucket 直接来自网关 /internal/v10/usage/summary 的 buckets 元素，
+     *   其字段名由网关 internalv10/usage.go 的 UsageBucket 决定：
+     *     key / request_count / quota / quota_micros / quota_amount / prompt_tokens / completion_tokens
+     *   本地表的列名是 requests / cost_micros，两套命名必须在这里显式映射。
+     *   早期版本直接读 $bucket['requests'] / $bucket['cost_micros']，这两个键在网关响应里
+     *   根本不存在，于是每天的快照都被写成 0——网关一旦不可达，前台看到的"近30天用量"
+     *   全是零。这里同时兼容两种键名，避免调用方口径再次漂移。
      *
      * @param int    $clientId
      * @param int    $hostId
      * @param int    $keyId
      * @param string $day      YYYY-MM-DD
-     * @param array  $bucket   ['requests','prompt_tokens','completion_tokens','cost_micros']
-     * @return void
+     * @param array  $bucket   网关 buckets 原始元素
+     * @return bool 是否写入成功
      */
     public static function upsertDay($clientId, $hostId, $keyId, $day, array $bucket)
     {
         $now = time();
+
+        # 网关键名优先，本地键名兜底：两种都接受，避免上游再改名时静默清零。
+        $requests = $bucket['request_count'] ?? ($bucket['requests'] ?? 0);
+        $costMicros = $bucket['quota_micros'] ?? ($bucket['cost_micros'] ?? 0);
+
         $data = [
             'client_id'         => (int) $clientId,
             'host_id'           => (int) $hostId,
-            'requests'          => (int) ($bucket['requests'] ?? 0),
+            'requests'          => (int) $requests,
             'prompt_tokens'     => (int) ($bucket['prompt_tokens'] ?? 0),
             'completion_tokens' => (int) ($bucket['completion_tokens'] ?? 0),
-            'cost_micros'       => (int) ($bucket['cost_micros'] ?? 0),
+            'cost_micros'       => (int) $costMicros,
             'update_time'       => $now,
         ];
 
@@ -71,6 +84,8 @@ class UsageModel extends Model
         } else {
             $exist->save($data);
         }
+
+        return true;
     }
 
     /**

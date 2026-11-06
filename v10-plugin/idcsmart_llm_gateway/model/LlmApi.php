@@ -567,7 +567,7 @@ class LlmApi
             return self::fail(self::CODE_MISSING_REF, '拒绝投递：ref_type / ref_id 为空', 0);
         }
 
-        $pushLogId = PushLogModel::enqueue($path, $payload, $refType, $refId);
+        $pushLogId = PushLogModel::enqueue($path, $payload, $refType, $refId, $method);
 
         $res = self::request($method, $path, $payload);
         $verdict = self::classify($res);
@@ -659,7 +659,7 @@ class LlmApi
                 continue;
             }
 
-            $res = self::request('POST', (string) $row['endpoint'], $payload);
+            $res = self::request(self::methodOf($row), (string) $row['endpoint'], $payload);
             $verdict = self::classify($res);
 
             if ($verdict === 'ok' || $verdict === 'done') {
@@ -684,6 +684,23 @@ class LlmApi
     }
 
     /**
+     * 取出待重投记录原本用的 HTTP 方法
+     *
+     * 早期重投一律写死 POST，于是任何非 POST 的投递（例如未来加了 GET 的查询型
+     * 补偿）一旦失败就永远重投不成功。老数据没有 method 列值时回落到 POST，
+     * 保持与历史行为一致。
+     *
+     * @param array $row
+     * @return string
+     */
+    private static function methodOf(array $row)
+    {
+        $method = strtoupper(trim((string) ($row['method'] ?? '')));
+
+        return $method !== '' ? $method : 'POST';
+    }
+
+    /**
      * 后台手动重投单条
      *
      * @param int $pushLogId
@@ -705,7 +722,7 @@ class LlmApi
             return self::fail(self::CODE_PARAM_ERROR, 'payload 无法解析', 0);
         }
 
-        $res = self::request('POST', (string) $row['endpoint'], $payload);
+        $res = self::request(self::methodOf($row), (string) $row['endpoint'], $payload);
         $verdict = self::classify($res);
 
         if ($verdict === 'ok' || $verdict === 'done') {
@@ -870,12 +887,42 @@ class LlmApi
 
         $since = time() - 86400 * 30;
         $now = time();
-        $keys = KeyModel::where('status', '<>', 'revoked')->limit(500)->select()->toArray();
 
-        # 按客户去重：用量是按客户聚合的，逐把 Key 拉一遍只会把同一份数据拉 N 次。
+        /*
+         * 只取"有未吊销 Key 的客户"去重后的 client_id。
+         *
+         * 早期写法是 KeyModel::limit(500)->select() 再按 client 去重：
+         * 客户一大（500 把 Key 以上）就永远轮不到后面的客户，快照长期缺失；
+         * 而这里真正需要的是**客户列表**，逐把 Key 只需要 client_id 一列。
+         * 改为直接取 distinct client_id 并分页，避免被 Key 数量绑架。
+         */
         $clientIds = [];
-        foreach ($keys as $key) {
-            $clientIds[(int) $key['client_id']] = true;
+        $page = 1;
+        $pageSize = 500;
+        while (true) {
+            $rows = KeyModel::where('status', '<>', 'revoked')
+                ->where('client_id', '>', 0)
+                ->distinct(true)
+                ->field('client_id')
+                ->order('client_id', 'asc')
+                ->page($page, $pageSize)
+                ->select()
+                ->toArray();
+
+            if (empty($rows)) {
+                break;
+            }
+            foreach ($rows as $row) {
+                $clientIds[(int) $row['client_id']] = true;
+            }
+            if (count($rows) < $pageSize) {
+                break;
+            }
+            $page++;
+            // 硬上限：避免异常数据让定时任务跑不完，3000 个客户足够当前规模。
+            if ($page > 6) {
+                break;
+            }
         }
 
         foreach (array_keys($clientIds) as $clientId) {

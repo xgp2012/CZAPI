@@ -18,12 +18,16 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import {
   Activity,
+  BookOpen,
   Box,
+  Building2,
+  ChartColumn,
   ClipboardList,
   CreditCard,
   FileText,
   FlaskConical,
   Key,
+  KeyRound,
   LayoutDashboard,
   ListTodo,
   MessageSquare,
@@ -177,6 +181,57 @@ export function useSidebarData(badges: SidebarBadges = {}): SidebarData {
             requiredRole: ROLE.SUPER_ADMIN,
             // Model pricing lives in System Settings.
             badge: badges.modelPricing,
+          },
+        ],
+      },
+      {
+        // V10 运营面：原本独立部署在 /admin/ 的 Vue 后台，现并入控制台。
+        // 放在 Admin 之后、单独成组，是因为它管理的不是"网关本身"，
+        // 而是"网关与 V10 之间的边界"——站点凭据、托管账户、账本。
+        id: 'v10',
+        title: t('V10 Operations'),
+        items: [
+          {
+            title: t('V10 Overview'),
+            url: '/v10',
+            icon: Building2,
+            requiredRole: ROLE.ADMIN,
+          },
+          {
+            title: t('V10 Sites'),
+            url: '/v10/sites',
+            icon: PlugZap,
+            requiredRole: ROLE.ADMIN,
+          },
+          {
+            title: t('V10 Accounts'),
+            url: '/v10/accounts',
+            icon: Users,
+            requiredRole: ROLE.ADMIN,
+          },
+          {
+            title: t('V10 Ledger'),
+            url: '/v10/ledger',
+            icon: BookOpen,
+            requiredRole: ROLE.ADMIN,
+          },
+          {
+            title: t('V10 Keys'),
+            url: '/v10/keys',
+            icon: KeyRound,
+            requiredRole: ROLE.ADMIN,
+          },
+          {
+            title: t('V10 Subscriptions'),
+            url: '/v10/hosts',
+            icon: CreditCard,
+            requiredRole: ROLE.ADMIN,
+          },
+          {
+            title: t('V10 Usage'),
+            url: '/v10/usage',
+            icon: ChartColumn,
+            requiredRole: ROLE.ADMIN,
           },
         ],
       },

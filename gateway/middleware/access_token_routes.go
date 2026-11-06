@@ -307,6 +307,38 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 
 	// router/relay-router.go
 	"POST /pg/chat/completions": accessTokenSessionRule,
+
+	// router/v10-router.go: /api/v10/admin
+	// 站点凭据的运维动作，永远不接受访问令牌——一旦可以用令牌调用，
+	// 一枚泄露的客户 Key 就能给自己轮换新密钥。
+	"GET /api/v10/admin/sites":             accessTokenSessionRule,
+	"POST /api/v10/admin/sites":            accessTokenSessionRule,
+	"POST /api/v10/admin/sites/:id/secret": accessTokenSessionRule,
+	"POST /api/v10/admin/sites/:id/status": accessTokenSessionRule,
+	"GET /api/v10/admin/site-options":      accessTokenSessionRule,
+
+	// router/v10-router.go: /api/v10/console
+	// 控制台自身用 czapi_admin cookie 或 new-api 管理员会话鉴权，
+	// 与访问令牌体系无关，因此同样声明为 session 规则。
+	"POST /api/v10/console/login":                   accessTokenSessionRule,
+	"GET /api/v10/console/bootstrap":                accessTokenSessionRule,
+	"GET /api/v10/console/me":                       accessTokenSessionRule,
+	"POST /api/v10/console/logout":                  accessTokenSessionRule,
+	"POST /api/v10/console/password":                accessTokenSessionRule,
+	"GET /api/v10/console/overview":                 accessTokenSessionRule,
+	"GET /api/v10/console/sites":                    accessTokenSessionRule,
+	"POST /api/v10/console/sites":                   accessTokenSessionRule,
+	"POST /api/v10/console/sites/:id/secret":        accessTokenSessionRule,
+	"POST /api/v10/console/sites/:id/status":        accessTokenSessionRule,
+	"GET /api/v10/console/accounts":                 accessTokenSessionRule,
+	"POST /api/v10/console/accounts/:userId/credit": accessTokenSessionRule,
+	"GET /api/v10/console/ledger":                   accessTokenSessionRule,
+	"GET /api/v10/console/keys":                     accessTokenSessionRule,
+	"POST /api/v10/console/keys/:id/revoke":         accessTokenSessionRule,
+	"GET /api/v10/console/hosts":                    accessTokenSessionRule,
+	"POST /api/v10/console/hosts/:id/status":        accessTokenSessionRule,
+	"GET /api/v10/console/usage/summary":            accessTokenSessionRule,
+	"GET /api/v10/console/usage/models":             accessTokenSessionRule,
 }
 
 var (

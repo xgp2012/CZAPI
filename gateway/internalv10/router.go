@@ -229,7 +229,11 @@ func handleKeyList(c *gin.Context) {
 		return
 	}
 
-	keys, err := ListKeys(site, clientId)
+	// host_id 可选：传了就只返回该 V10 产品名下的 Key。
+	// 早期这里完全忽略这个查询参数，V10 前台"按产品看 Key"始终返回全部 Key。
+	hostId, _ := strconv.ParseInt(c.Query("host_id"), 10, 64)
+
+	keys, err := ListKeys(site, clientId, hostId)
 	if err != nil {
 		replyError(c, http.StatusInternalServerError, CodeInternal, err.Error())
 		return

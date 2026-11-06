@@ -190,11 +190,19 @@ func SetApiRouter(router *gin.Engine) {
 			v10.RegisterAdmin(v10AdminRoute)
 		}
 
-		// 独立后台（/admin/）的 API：自带会话，不复用 new-api 的管理员登录。
-		// 客户完全不接触这里，运维用它做站点/账户/账本/Key/用量管理。
+		// V10 运营面的 API：站点/账户/账本/Key/host/用量。
+		//
+		// 鉴权双轨：既认 new-api 控制台管理员会话（融合后 React 控制台的 /v10/*
+		// 页面用这个），也认旧的 czapi_admin Cookie（独立后台 /admin/ 用这个）。
+		// 两条凭据落到同一批业务函数，行为不会分叉。
+		//
+		// TryUserAuth 只解析凭据、不拒绝匿名：它把 new-api 会话写进上下文，
+		// 再由 RequireConsoleAdmin 判断角色是否达标。这样登录态解析只有一份，
+		// 不会出现"这里认、那里不认"的分裂。
 		v10Console := apiRouter.Group("/v10/console")
+		v10Console.Use(middleware.TryUserAuth())
 		{
-			v10.RegisterConsole(v10Console, v10Console.Group("", v10.RequireAdmin()))
+			v10.RegisterConsole(v10Console, v10Console.Group("", v10.RequireConsoleAdmin()))
 		}
 
 		// Subscription billing (plans, purchase, admin management)

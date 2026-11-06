@@ -32,10 +32,19 @@ export interface SetupFormValues {
   password: string
   confirmPassword: string
   usageMode: SetupUsageMode
+  /** 可选的 V10 站点引导：留空表示稍后再到 V10 运营页创建。 */
+  v10AppId: string
+  v10SiteName: string
+}
+
+export interface SetupSuccessData extends SetupStatus {
+  v10_app_id?: string
+  /** 明文密钥只在初始化响应里出现这一次。 */
+  v10_app_secret?: string
 }
 
 export interface SetupResponse {
   success: boolean
   message?: string
-  data?: SetupStatus
+  data?: SetupSuccessData
 }

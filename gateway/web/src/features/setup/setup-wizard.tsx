@@ -23,9 +23,11 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { CopyButton } from '@/components/copy-button'
 import { ErrorState } from '@/components/error-state'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { LoadingState } from '@/components/loading-state'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -34,6 +36,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Form } from '@/components/ui/form'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSystemConfig } from '@/hooks/use-system-config'
@@ -48,6 +58,7 @@ import { CompleteStep } from './components/complete-step'
 import { DatabaseStep } from './components/database-step'
 import { StepNavigation } from './components/step-navigation'
 import { UsageModeStep } from './components/usage-mode-step'
+import { V10SiteStep } from './components/v10-site-step'
 import type { SetupFormValues, SetupStatus } from './types'
 
 const STEPS = [
@@ -64,6 +75,10 @@ const STEPS = [
     descriptionKey: 'Choose how the platform will operate',
   },
   {
+    titleKey: 'V10 site',
+    descriptionKey: 'Optionally connect a V10 business system',
+  },
+  {
     titleKey: 'Review & initialize',
     descriptionKey: 'Confirm settings and finish setup',
   },
@@ -74,6 +89,8 @@ const DEFAULT_FORM_VALUES: SetupFormValues = {
   password: '',
   confirmPassword: '',
   usageMode: 'external',
+  v10AppId: '',
+  v10SiteName: '',
 }
 
 export function SetupWizard() {
@@ -84,6 +101,11 @@ export function SetupWizard() {
 
   const [currentStep, setCurrentStep] = useState(0)
   const [setupStatus, setSetupStatus] = useState<SetupStatus | undefined>()
+  // 初始化响应里可能带回一次性 V10 密钥；有值就挡住跳转，先让部署方保存。
+  const [issuedSecret, setIssuedSecret] = useState<{
+    appId: string
+    secret: string
+  } | null>(null)
 
   const form = useForm<SetupFormValues>({
     defaultValues: DEFAULT_FORM_VALUES,
@@ -107,18 +129,27 @@ export function SetupWizard() {
     mutationKey: ['setup-submit'],
     mutationFn: submitSetup,
     onSuccess: async (response) => {
-      if (response.success) {
-        toast.success(t('System initialized successfully! Redirecting…'))
-        await queryClient.invalidateQueries({ queryKey: ['setup-status'] })
-        setTimeout(() => {
-          navigate({ to: '/' })
-        }, 1200)
-      } else {
+      if (!response.success) {
         handleServerError(
           response,
           t('Initialization failed, please try again.')
         )
+        return
       }
+
+      const appId = response.data?.v10_app_id
+      const secret = response.data?.v10_app_secret
+      if (appId && secret) {
+        // 先把密钥交给用户保存，再跳转；不然刷新就永远拿不到了。
+        setIssuedSecret({ appId, secret })
+        return
+      }
+
+      toast.success(t('System initialized successfully! Redirecting…'))
+      await queryClient.invalidateQueries({ queryKey: ['setup-status'] })
+      setTimeout(() => {
+        navigate({ to: '/' })
+      }, 1200)
     },
     onError: (error) => {
       handleServerError(error, t('Failed to initialize system'))
@@ -205,6 +236,9 @@ export function SetupWizard() {
     if (currentStep === 2) {
       return <UsageModeStep form={form} />
     }
+    if (currentStep === 3) {
+      return <V10SiteStep form={form} />
+    }
     return <CompleteStep status={setupStatus} values={watchedValues} />
   }, [currentStep, setupStatus, form, watchedValues])
 
@@ -284,6 +318,59 @@ export function SetupWizard() {
 
   return (
     <div className='bg-muted/40 relative min-h-svh py-10'>
+      <Dialog
+        open={issuedSecret !== null}
+        onOpenChange={() => {
+          // 强制用户点确认按钮才离开，避免误触遮罩丢失密钥。
+        }}
+      >
+        <DialogContent showCloseButton={false} className='sm:max-w-lg'>
+          <DialogHeader>
+            <DialogTitle>{t('Save the V10 site secret now')}</DialogTitle>
+            <DialogDescription>
+              {t(
+                'This is the only time the plaintext secret is shown. The gateway stores only a hash, so it cannot be recovered later.'
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='space-y-3'>
+            <div className='bg-muted flex items-center gap-2 rounded-md p-3'>
+              <span className='text-muted-foreground w-16 shrink-0 text-xs'>
+                {t('App ID')}
+              </span>
+              <code className='min-w-0 flex-1 font-mono text-xs break-all'>
+                {issuedSecret?.appId ?? ''}
+              </code>
+              <CopyButton value={issuedSecret?.appId ?? ''} />
+            </div>
+            <div className='bg-muted flex items-center gap-2 rounded-md p-3'>
+              <span className='text-muted-foreground w-16 shrink-0 text-xs'>
+                {t('Secret')}
+              </span>
+              <code className='min-w-0 flex-1 font-mono text-xs break-all'>
+                {issuedSecret?.secret ?? ''}
+              </code>
+              <CopyButton value={issuedSecret?.secret ?? ''} />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={async () => {
+                setIssuedSecret(null)
+                await queryClient.invalidateQueries({
+                  queryKey: ['setup-status'],
+                })
+                navigate({ to: '/' })
+              }}
+            >
+              {t('I have saved it, continue')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className='absolute top-4 right-4 sm:top-6 sm:right-6'>
         <LanguageSwitcher />
       </div>
@@ -325,7 +412,8 @@ export function SetupWizard() {
           </CardHeader>
 
           <CardContent className='space-y-6'>
-            <ol className='grid gap-3 sm:grid-cols-4'>
+            {/* 列数跟随 STEPS 长度：写死 4 会让第 5 步（V10 site）单独换行。 */}
+            <ol className='grid gap-3 sm:grid-cols-5'>
               {STEPS.map((step, index) => {
                 const isActive = currentStep === index
                 const isCompleted = currentStep > index

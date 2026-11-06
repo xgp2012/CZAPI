@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"strings"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
@@ -23,6 +24,11 @@ type SetupRequest struct {
 	ConfirmPassword    string `json:"confirmPassword"`
 	SelfUseModeEnabled bool   `json:"SelfUseModeEnabled"`
 	DemoSiteEnabled    bool   `json:"DemoSiteEnabled"`
+	// V10 站点引导：两项都留空则跳过，什么都不建。
+	// 填了 AppId 就在初始化时顺手建好站点，并把明文 secret 回一次，
+	// 让部署方照抄进 V10 插件——省掉"装完再进后台点一圈"的一步。
+	V10AppId    string `json:"v10_app_id"`
+	V10SiteName string `json:"v10_site_name"`
 }
 
 func GetSetup(c *gin.Context) {
@@ -141,7 +147,39 @@ func PostSetup(c *gin.Context) {
 		common.SysError(common.LogText("failed to re-apply V10 user-facing lock: %s", err.Error()))
 	}
 
-	common.ApiSuccessT(c, "System initialized successfully", nil)
+	// 可选的 V10 站点引导。建失败不回滚整套初始化：系统已经可用了，
+	// 站点随时可以到 V10 运营页补建，这里只把失败原因如实带回去。
+	appId := strings.TrimSpace(req.V10AppId)
+	if appId == "" {
+		common.ApiSuccessT(c, "System initialized successfully", nil)
+		return
+	}
+
+	siteName := strings.TrimSpace(req.V10SiteName)
+	if siteName == "" {
+		siteName = appId
+	}
+	secret, err := v10.GenerateSiteSecret()
+	if err != nil {
+		common.SysError(common.LogText("failed to generate V10 site secret: %s", err.Error()))
+		common.ApiSuccessT(c, "System initialized successfully, but the V10 site secret could not be generated. Create the site later from V10 Operations.", nil)
+		return
+	}
+	if _, err := v10.CreateSite(appId, siteName, secret); err != nil {
+		common.SysError(common.LogText("failed to create bootstrap V10 site: %s", err.Error()))
+		common.ApiErrorT(c, "System initialized, but creating the V10 site failed: {{error}}. Create it later from V10 Operations.", map[string]any{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "System initialized successfully",
+		"data": gin.H{
+			"v10_app_id": appId,
+			// 明文 secret 只在此刻出现一次，库中只存密文与前缀。
+			"v10_app_secret": secret,
+		},
+	})
 }
 
 func boolToString(b bool) string {

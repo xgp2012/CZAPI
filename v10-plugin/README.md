@@ -8,6 +8,9 @@
 > 接口契约见 [`../docs/internal-v10-contract.md`](../docs/internal-v10-contract.md)，
 > 部署步骤见 [`../docs/deployment.md`](../docs/deployment.md)。
 > **本文档只讲 V10 这边的安装与运维。**
+>
+> **要改这个插件的代码，先读 [`DEVELOPMENT.md`](DEVELOPMENT.md)** ——
+> 那里写了调用链、四道幂等闸门、`host_id` 命名约定、事件名分级和改代码检查清单。
 
 ---
 

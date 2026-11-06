@@ -28,6 +28,7 @@ import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as AuthenticatedChat2linkRouteImport } from './routes/_authenticated/chat2link'
 import { Route as AuthenticatedSystemSettingsRouteRouteImport } from './routes/_authenticated/system-settings/route'
+import { Route as AuthenticatedV10RouteRouteImport } from './routes/_authenticated/v10/route'
 import { Route as AboutIndexRouteImport } from './routes/about/index'
 import { Route as OauthProviderRouteImport } from './routes/oauth/$provider'
 import { Route as PricingIndexRouteImport } from './routes/pricing/index'
@@ -55,6 +56,13 @@ import { Route as AuthenticatedUsageLogsIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedUsageLogsSectionRouteImport } from './routes/_authenticated/usage-logs/$section'
 import { Route as AuthenticatedUsageLogsAuditRouteImport } from './routes/_authenticated/usage-logs/audit'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
+import { Route as AuthenticatedV10IndexRouteImport } from './routes/_authenticated/v10/index'
+import { Route as AuthenticatedV10AccountsRouteImport } from './routes/_authenticated/v10/accounts'
+import { Route as AuthenticatedV10HostsRouteImport } from './routes/_authenticated/v10/hosts'
+import { Route as AuthenticatedV10KeysRouteImport } from './routes/_authenticated/v10/keys'
+import { Route as AuthenticatedV10LedgerRouteImport } from './routes/_authenticated/v10/ledger'
+import { Route as AuthenticatedV10SitesRouteImport } from './routes/_authenticated/v10/sites'
+import { Route as AuthenticatedV10UsageRouteImport } from './routes/_authenticated/v10/usage'
 import { Route as AuthenticatedWalletIndexRouteImport } from './routes/_authenticated/wallet/index'
 import { Route as PricingModelIdIndexRouteImport } from './routes/pricing/$modelId/index'
 import { Route as AuthenticatedSystemSettingsAuthIndexRouteImport } from './routes/_authenticated/system-settings/auth/index'
@@ -168,6 +176,11 @@ const AuthenticatedSystemSettingsRouteRoute =
     path: '/system-settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedV10RouteRoute = AuthenticatedV10RouteRouteImport.update({
+  id: '/v10',
+  path: '/v10',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AboutIndexRoute = AboutIndexRouteImport.update({
   id: '/about/',
   path: '/about/',
@@ -320,6 +333,42 @@ const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedV10IndexRoute = AuthenticatedV10IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedV10RouteRoute,
+} as any)
+const AuthenticatedV10AccountsRoute =
+  AuthenticatedV10AccountsRouteImport.update({
+    id: '/accounts',
+    path: '/accounts',
+    getParentRoute: () => AuthenticatedV10RouteRoute,
+  } as any)
+const AuthenticatedV10HostsRoute = AuthenticatedV10HostsRouteImport.update({
+  id: '/hosts',
+  path: '/hosts',
+  getParentRoute: () => AuthenticatedV10RouteRoute,
+} as any)
+const AuthenticatedV10KeysRoute = AuthenticatedV10KeysRouteImport.update({
+  id: '/keys',
+  path: '/keys',
+  getParentRoute: () => AuthenticatedV10RouteRoute,
+} as any)
+const AuthenticatedV10LedgerRoute = AuthenticatedV10LedgerRouteImport.update({
+  id: '/ledger',
+  path: '/ledger',
+  getParentRoute: () => AuthenticatedV10RouteRoute,
+} as any)
+const AuthenticatedV10SitesRoute = AuthenticatedV10SitesRouteImport.update({
+  id: '/sites',
+  path: '/sites',
+  getParentRoute: () => AuthenticatedV10RouteRoute,
+} as any)
+const AuthenticatedV10UsageRoute = AuthenticatedV10UsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => AuthenticatedV10RouteRoute,
+} as any)
 const AuthenticatedWalletIndexRoute =
   AuthenticatedWalletIndexRouteImport.update({
     id: '/wallet/',
@@ -433,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/user-agreement': typeof UserAgreementRoute
   '/system-settings': typeof AuthenticatedSystemSettingsRouteRouteWithChildren
+  '/v10': typeof AuthenticatedV10RouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/oauth': typeof authOauthRoute
   '/otp': typeof authOtpRoute
@@ -459,6 +509,12 @@ export interface FileRoutesByFullPath {
   '/models/$section': typeof AuthenticatedModelsSectionRoute
   '/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
+  '/v10/accounts': typeof AuthenticatedV10AccountsRoute
+  '/v10/hosts': typeof AuthenticatedV10HostsRoute
+  '/v10/keys': typeof AuthenticatedV10KeysRoute
+  '/v10/ledger': typeof AuthenticatedV10LedgerRoute
+  '/v10/sites': typeof AuthenticatedV10SitesRoute
+  '/v10/usage': typeof AuthenticatedV10UsageRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/keys/': typeof AuthenticatedKeysIndexRoute
@@ -473,6 +529,7 @@ export interface FileRoutesByFullPath {
   '/task-plugins/': typeof AuthenticatedTaskPluginsIndexRoute
   '/usage-logs/': typeof AuthenticatedUsageLogsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
+  '/v10/': typeof AuthenticatedV10IndexRoute
   '/wallet/': typeof AuthenticatedWalletIndexRoute
   '/pricing/$modelId/': typeof PricingModelIdIndexRoute
   '/system-settings/auth/$section': typeof AuthenticatedSystemSettingsAuthSectionRoute
@@ -522,6 +579,12 @@ export interface FileRoutesByTo {
   '/models/$section': typeof AuthenticatedModelsSectionRoute
   '/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
+  '/v10/accounts': typeof AuthenticatedV10AccountsRoute
+  '/v10/hosts': typeof AuthenticatedV10HostsRoute
+  '/v10/keys': typeof AuthenticatedV10KeysRoute
+  '/v10/ledger': typeof AuthenticatedV10LedgerRoute
+  '/v10/sites': typeof AuthenticatedV10SitesRoute
+  '/v10/usage': typeof AuthenticatedV10UsageRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/keys': typeof AuthenticatedKeysIndexRoute
@@ -536,6 +599,7 @@ export interface FileRoutesByTo {
   '/task-plugins': typeof AuthenticatedTaskPluginsIndexRoute
   '/usage-logs': typeof AuthenticatedUsageLogsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/v10': typeof AuthenticatedV10IndexRoute
   '/wallet': typeof AuthenticatedWalletIndexRoute
   '/pricing/$modelId': typeof PricingModelIdIndexRoute
   '/system-settings/auth/$section': typeof AuthenticatedSystemSettingsAuthSectionRoute
@@ -563,6 +627,7 @@ export interface FileRoutesById {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/user-agreement': typeof UserAgreementRoute
   '/_authenticated/system-settings': typeof AuthenticatedSystemSettingsRouteRouteWithChildren
+  '/_authenticated/v10': typeof AuthenticatedV10RouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/oauth': typeof authOauthRoute
   '/(auth)/otp': typeof authOtpRoute
@@ -589,6 +654,12 @@ export interface FileRoutesById {
   '/_authenticated/models/$section': typeof AuthenticatedModelsSectionRoute
   '/_authenticated/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/_authenticated/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
+  '/_authenticated/v10/accounts': typeof AuthenticatedV10AccountsRoute
+  '/_authenticated/v10/hosts': typeof AuthenticatedV10HostsRoute
+  '/_authenticated/v10/keys': typeof AuthenticatedV10KeysRoute
+  '/_authenticated/v10/ledger': typeof AuthenticatedV10LedgerRoute
+  '/_authenticated/v10/sites': typeof AuthenticatedV10SitesRoute
+  '/_authenticated/v10/usage': typeof AuthenticatedV10UsageRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/keys/': typeof AuthenticatedKeysIndexRoute
@@ -603,6 +674,7 @@ export interface FileRoutesById {
   '/_authenticated/task-plugins/': typeof AuthenticatedTaskPluginsIndexRoute
   '/_authenticated/usage-logs/': typeof AuthenticatedUsageLogsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/v10/': typeof AuthenticatedV10IndexRoute
   '/_authenticated/wallet/': typeof AuthenticatedWalletIndexRoute
   '/pricing/$modelId/': typeof PricingModelIdIndexRoute
   '/_authenticated/system-settings/auth/$section': typeof AuthenticatedSystemSettingsAuthSectionRoute
@@ -629,6 +701,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/user-agreement'
     | '/system-settings'
+    | '/v10'
     | '/forgot-password'
     | '/oauth'
     | '/otp'
@@ -655,6 +728,12 @@ export interface FileRouteTypes {
     | '/models/$section'
     | '/usage-logs/$section'
     | '/usage-logs/audit'
+    | '/v10/accounts'
+    | '/v10/hosts'
+    | '/v10/keys'
+    | '/v10/ledger'
+    | '/v10/sites'
+    | '/v10/usage'
     | '/channels/'
     | '/dashboard/'
     | '/keys/'
@@ -669,6 +748,7 @@ export interface FileRouteTypes {
     | '/task-plugins/'
     | '/usage-logs/'
     | '/users/'
+    | '/v10/'
     | '/wallet/'
     | '/pricing/$modelId/'
     | '/system-settings/auth/$section'
@@ -718,6 +798,12 @@ export interface FileRouteTypes {
     | '/models/$section'
     | '/usage-logs/$section'
     | '/usage-logs/audit'
+    | '/v10/accounts'
+    | '/v10/hosts'
+    | '/v10/keys'
+    | '/v10/ledger'
+    | '/v10/sites'
+    | '/v10/usage'
     | '/channels'
     | '/dashboard'
     | '/keys'
@@ -732,6 +818,7 @@ export interface FileRouteTypes {
     | '/task-plugins'
     | '/usage-logs'
     | '/users'
+    | '/v10'
     | '/wallet'
     | '/pricing/$modelId'
     | '/system-settings/auth/$section'
@@ -758,6 +845,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/user-agreement'
     | '/_authenticated/system-settings'
+    | '/_authenticated/v10'
     | '/(auth)/forgot-password'
     | '/(auth)/oauth'
     | '/(auth)/otp'
@@ -784,6 +872,12 @@ export interface FileRouteTypes {
     | '/_authenticated/models/$section'
     | '/_authenticated/usage-logs/$section'
     | '/_authenticated/usage-logs/audit'
+    | '/_authenticated/v10/accounts'
+    | '/_authenticated/v10/hosts'
+    | '/_authenticated/v10/keys'
+    | '/_authenticated/v10/ledger'
+    | '/_authenticated/v10/sites'
+    | '/_authenticated/v10/usage'
     | '/_authenticated/channels/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/keys/'
@@ -798,6 +892,7 @@ export interface FileRouteTypes {
     | '/_authenticated/task-plugins/'
     | '/_authenticated/usage-logs/'
     | '/_authenticated/users/'
+    | '/_authenticated/v10/'
     | '/_authenticated/wallet/'
     | '/pricing/$modelId/'
     | '/_authenticated/system-settings/auth/$section'
@@ -971,6 +1066,13 @@ declare module '@tanstack/react-router' {
       path: '/system-settings'
       fullPath: '/system-settings'
       preLoaderRoute: typeof AuthenticatedSystemSettingsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/v10': {
+      id: '/_authenticated/v10'
+      path: '/v10'
+      fullPath: '/v10'
+      preLoaderRoute: typeof AuthenticatedV10RouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/about/': {
@@ -1161,6 +1263,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/users/'
       preLoaderRoute: typeof AuthenticatedUsersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/v10/': {
+      id: '/_authenticated/v10/'
+      path: '/'
+      fullPath: '/v10/'
+      preLoaderRoute: typeof AuthenticatedV10IndexRouteImport
+      parentRoute: typeof AuthenticatedV10RouteRoute
+    }
+    '/_authenticated/v10/accounts': {
+      id: '/_authenticated/v10/accounts'
+      path: '/accounts'
+      fullPath: '/v10/accounts'
+      preLoaderRoute: typeof AuthenticatedV10AccountsRouteImport
+      parentRoute: typeof AuthenticatedV10RouteRoute
+    }
+    '/_authenticated/v10/hosts': {
+      id: '/_authenticated/v10/hosts'
+      path: '/hosts'
+      fullPath: '/v10/hosts'
+      preLoaderRoute: typeof AuthenticatedV10HostsRouteImport
+      parentRoute: typeof AuthenticatedV10RouteRoute
+    }
+    '/_authenticated/v10/keys': {
+      id: '/_authenticated/v10/keys'
+      path: '/keys'
+      fullPath: '/v10/keys'
+      preLoaderRoute: typeof AuthenticatedV10KeysRouteImport
+      parentRoute: typeof AuthenticatedV10RouteRoute
+    }
+    '/_authenticated/v10/ledger': {
+      id: '/_authenticated/v10/ledger'
+      path: '/ledger'
+      fullPath: '/v10/ledger'
+      preLoaderRoute: typeof AuthenticatedV10LedgerRouteImport
+      parentRoute: typeof AuthenticatedV10RouteRoute
+    }
+    '/_authenticated/v10/sites': {
+      id: '/_authenticated/v10/sites'
+      path: '/sites'
+      fullPath: '/v10/sites'
+      preLoaderRoute: typeof AuthenticatedV10SitesRouteImport
+      parentRoute: typeof AuthenticatedV10RouteRoute
+    }
+    '/_authenticated/v10/usage': {
+      id: '/_authenticated/v10/usage'
+      path: '/usage'
+      fullPath: '/v10/usage'
+      preLoaderRoute: typeof AuthenticatedV10UsageRouteImport
+      parentRoute: typeof AuthenticatedV10RouteRoute
     }
     '/_authenticated/wallet/': {
       id: '/_authenticated/wallet/'
@@ -1380,8 +1531,34 @@ const AuthenticatedSystemSettingsRouteRouteWithChildren =
     AuthenticatedSystemSettingsRouteRouteChildren,
   )
 
+interface AuthenticatedV10RouteRouteChildren {
+  AuthenticatedV10AccountsRoute: typeof AuthenticatedV10AccountsRoute
+  AuthenticatedV10HostsRoute: typeof AuthenticatedV10HostsRoute
+  AuthenticatedV10KeysRoute: typeof AuthenticatedV10KeysRoute
+  AuthenticatedV10LedgerRoute: typeof AuthenticatedV10LedgerRoute
+  AuthenticatedV10SitesRoute: typeof AuthenticatedV10SitesRoute
+  AuthenticatedV10UsageRoute: typeof AuthenticatedV10UsageRoute
+  AuthenticatedV10IndexRoute: typeof AuthenticatedV10IndexRoute
+}
+
+const AuthenticatedV10RouteRouteChildren: AuthenticatedV10RouteRouteChildren = {
+  AuthenticatedV10AccountsRoute: AuthenticatedV10AccountsRoute,
+  AuthenticatedV10HostsRoute: AuthenticatedV10HostsRoute,
+  AuthenticatedV10KeysRoute: AuthenticatedV10KeysRoute,
+  AuthenticatedV10LedgerRoute: AuthenticatedV10LedgerRoute,
+  AuthenticatedV10SitesRoute: AuthenticatedV10SitesRoute,
+  AuthenticatedV10UsageRoute: AuthenticatedV10UsageRoute,
+  AuthenticatedV10IndexRoute: AuthenticatedV10IndexRoute,
+}
+
+const AuthenticatedV10RouteRouteWithChildren =
+  AuthenticatedV10RouteRoute._addFileChildren(
+    AuthenticatedV10RouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSystemSettingsRouteRoute: typeof AuthenticatedSystemSettingsRouteRouteWithChildren
+  AuthenticatedV10RouteRoute: typeof AuthenticatedV10RouteRouteWithChildren
   AuthenticatedChat2linkRoute: typeof AuthenticatedChat2linkRoute
   AuthenticatedChatChatIdRoute: typeof AuthenticatedChatChatIdRoute
   AuthenticatedDashboardSectionRoute: typeof AuthenticatedDashboardSectionRoute
@@ -1408,6 +1585,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSystemSettingsRouteRoute:
     AuthenticatedSystemSettingsRouteRouteWithChildren,
+  AuthenticatedV10RouteRoute: AuthenticatedV10RouteRouteWithChildren,
   AuthenticatedChat2linkRoute: AuthenticatedChat2linkRoute,
   AuthenticatedChatChatIdRoute: AuthenticatedChatChatIdRoute,
   AuthenticatedDashboardSectionRoute: AuthenticatedDashboardSectionRoute,
