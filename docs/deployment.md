@@ -8,6 +8,8 @@
 | V10 插件 | `v10-plugin/` | 让 V10 把网关当成一种可售商品 |
 | 契约 | `docs/internal-v10-contract.md` | 双方唯一的接口约定 |
 
+> 要改网关代码，看 [development.md](development.md)；本文只管部署与排障。
+
 ## 三种部署形态，先选一种
 
 | 形态 | 适用 | 耗时 | 数据库 |

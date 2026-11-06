@@ -189,7 +189,7 @@ gateway/                new-api 二开（AGPL-3.0）
 v10-plugin/             V10 插件：addon + 服务端模块
   idcsmart_llm_gateway/   插件主体（配置、路由、控制器、模型）
   llm_gateway/            商品开通/续费/暂停/终止的模块实现
-docs/                   /internal/v10 契约 + 部署运维手册
+docs/                   /internal/v10 契约 + 部署运维手册 + 网关开发指南
 scripts/                端到端验收（插件契约、host 生命周期、SSO、轮换、用户面封锁）
 legacy/                 早期自建方案（只读参考，已被取代；见 legacy/README.md）
 ```
@@ -197,3 +197,12 @@ legacy/                 早期自建方案（只读参考，已被取代；见 l
 运维面已并入客户控制台：`/console/` 是唯一入口，new-api 原生页面（渠道、模型、
 用户、系统设置）与「V10 运营」分组（站点、托管账户、账本、Key、订阅、用量）共用
 同一套会话与侧边栏。旧的 Vue `/admin/` 仍保留可访问，但功能已在 React 侧复刻。
+
+文档索引：
+
+| 文档 | 读者 | 内容 |
+| --- | --- | --- |
+| [docs/deployment.md](docs/deployment.md) | 部署与运维 | 构建、环境变量、上线、排障 |
+| [docs/development.md](docs/development.md) | 改网关代码的人 | 仓库地图、开发环境、双凭据鉴权、新增运营页、易错点 |
+| [docs/internal-v10-contract.md](docs/internal-v10-contract.md) | 对接方 | `/internal/v10` 报文、签名、错误码 |
+| [v10-plugin/DEVELOPMENT.md](v10-plugin/DEVELOPMENT.md) | 改插件的人 | 调用链、表结构、幂等凭证、hook 事件 |
