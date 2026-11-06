@@ -1,0 +1,1 @@
+function u(n){if(!n||Number(n)<=0)return"—";const t=new Date(Number(n)*1e3),e=r=>String(r).padStart(2,"0");return`${t.getFullYear()}-${e(t.getMonth()+1)}-${e(t.getDate())} ${e(t.getHours())}:${e(t.getMinutes())}:${e(t.getSeconds())}`}function o(n,t){const e=Number(t)||5e5;return(Number(n||0)/e).toFixed(2)}export{u as f,o as q};

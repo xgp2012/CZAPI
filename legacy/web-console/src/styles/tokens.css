@@ -1,0 +1,156 @@
+/* =========================================================================
+   CZAPI design tokens
+   -------------------------------------------------------------------------
+   Identity: an instrument panel for metered spend. The surface is a cool
+   slate ink (visible blue chroma, not neutral black); a single warm amber
+   carries everything about usage and quota, and a cool steel blue is used
+   only for comparisons (secondary series, balances). Numerals are always
+   monospaced and right-aligned — this console is read as a meter, not as a
+   magazine.
+   ========================================================================= */
+
+:root {
+  /* ---- spacing scale (4px base) ---------------------------------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ---- radii: deliberately small, hairline-driven ---------------- */
+  --r-xs: 3px;
+  --r-sm: 5px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* ---- type scale (1.25 major third, capped) --------------------- */
+  --fs-2xs: 11px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 14px;
+  --fs-md: 16px;
+  --fs-lg: 19px;
+  --fs-xl: 23px;
+  --fs-2xl: 28px;
+  --fs-3xl: 36px;
+  --fs-4xl: 46px;
+
+  --lh-tight: 1.2;
+  --lh-snug: 1.4;
+  --lh-normal: 1.6;
+
+  --tracking-wide: 0.06em;
+
+  /* ---- families -------------------------------------------------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans SC', 'Noto Sans CJK SC',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', 'Cascadia Mono',
+    Consolas, 'Liberation Mono', Menlo, 'Courier New', monospace;
+
+  /* ---- light theme (cool paper, never cream) --------------------- */
+  --bg-app: #eef1f5;
+  --bg-canvas: #f7f9fb;
+  --bg-panel: #ffffff;
+  --bg-raised: #ffffff;
+  --bg-sunken: #f1f4f8;
+  --bg-inset: #e9edf3;
+  --bg-hover: rgba(16, 24, 32, 0.04);
+  --bg-active: rgba(16, 24, 32, 0.07);
+
+  --ink-1: #0d1720;
+  --ink-2: #35485a;
+  --ink-3: #63788c;
+  --ink-4: #8b9cad;
+  --ink-inverse: #f7f9fb;
+
+  --line-1: #dfe5ec;
+  --line-2: #cbd4de;
+  --line-strong: #a9b7c6;
+
+  --accent: #b65f19;
+  --accent-hover: #9d500f;
+  --accent-soft: rgba(182, 95, 25, 0.12);
+  --accent-ink: #ffffff;
+
+  --steel: #2563a8;
+  --steel-soft: rgba(37, 99, 168, 0.1);
+
+  --ok: #1d7a52;
+  --ok-soft: rgba(29, 122, 82, 0.12);
+  --warn: #9a6a08;
+  --warn-soft: rgba(154, 106, 8, 0.13);
+  --danger: #b3362f;
+  --danger-soft: rgba(179, 54, 47, 0.11);
+  --info: #2f6f9e;
+  --info-soft: rgba(47, 111, 158, 0.11);
+
+  --shadow-1: 0 1px 2px rgba(13, 23, 32, 0.06);
+  --shadow-2: 0 6px 20px -12px rgba(13, 23, 32, 0.28);
+  --shadow-pop: 0 18px 48px -24px rgba(13, 23, 32, 0.4);
+  --focus-ring: 0 0 0 3px rgba(182, 95, 25, 0.24);
+
+  --rail-bg: #101b25;
+  --rail-ink: #93a7b8;
+  --rail-ink-strong: #eaf1f7;
+  --rail-active-bg: rgba(255, 178, 91, 0.13);
+  --rail-active-ink: #ffc382;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg-app: #0b1219;
+  --bg-canvas: #0f1720;
+  --bg-panel: #131e28;
+  --bg-raised: #17242f;
+  --bg-sunken: #0c141b;
+  --bg-inset: #1a2833;
+  --bg-hover: rgba(255, 255, 255, 0.045);
+  --bg-active: rgba(255, 255, 255, 0.08);
+
+  --ink-1: #e7eef5;
+  --ink-2: #b9c9d6;
+  --ink-3: #8298a9;
+  --ink-4: #5e7488;
+  --ink-inverse: #0b1219;
+
+  --line-1: #1f2d3a;
+  --line-2: #29394a;
+  --line-strong: #3a4d60;
+
+  --accent: #ffb25b;
+  --accent-hover: #ffc581;
+  --accent-soft: rgba(255, 178, 91, 0.14);
+  --accent-ink: #17100a;
+
+  --steel: #6fb4ff;
+  --steel-soft: rgba(111, 180, 255, 0.13);
+
+  --ok: #4ecb9a;
+  --ok-soft: rgba(78, 203, 154, 0.14);
+  --warn: #e5b64d;
+  --warn-soft: rgba(229, 182, 77, 0.15);
+  --danger: #ff7a72;
+  --danger-soft: rgba(255, 122, 114, 0.14);
+  --info: #64aee6;
+  --info-soft: rgba(100, 174, 230, 0.14);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 10px 28px -18px rgba(0, 0, 0, 0.85);
+  --shadow-pop: 0 24px 60px -28px rgba(0, 0, 0, 0.9);
+  --focus-ring: 0 0 0 3px rgba(255, 178, 91, 0.3);
+
+  --rail-bg: #0a1017;
+  --rail-ink: #7e93a4;
+  --rail-ink-strong: #eef4f9;
+  --rail-active-bg: rgba(255, 178, 91, 0.14);
+  --rail-active-ink: #ffc382;
+
+  color-scheme: dark;
+}

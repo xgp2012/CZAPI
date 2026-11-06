@@ -1,0 +1,43 @@
+<!-- LLM 网关（mobile/mfm301 模板）
+     页面引入样式位置 -->
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/clientarea/mobile/mfm301/css/llm.css">
+
+</head>
+
+<body>
+  <!--
+    iframe 壳（移动端，Vue3 + Vant）。
+    逻辑全部在 js/llm.js：调 console/v1/llm/sso-ticket 拿 sso_url -> 赋给 iframe.src。
+  -->
+  <div id="template" v-cloak>
+    <van-sticky>
+      <div class="tick-top-title">
+        <div class="tick-top-title-left">
+          <span>{{lang.llm_title}}</span>
+        </div>
+        <div class="tick-top-title-right">
+          <van-button icon="replay" size="small" @click="loadTicket"></van-button>
+        </div>
+      </div>
+    </van-sticky>
+
+    <div class="llm-body">
+      <div class="llm-desc">{{lang.llm_desc}}</div>
+
+      <div class="llm-loading" v-if="loading">
+        <van-loading size="24" vertical>{{lang.llm_loading}}</van-loading>
+      </div>
+
+      <div class="llm-error" v-if="!loading && errorMsg">
+        <div class="llm-error-text">{{errorMsg}}</div>
+        <van-button type="primary" size="small" @click="loadTicket">{{lang.llm_retry}}</van-button>
+      </div>
+
+      <iframe v-show="!loading && !errorMsg" ref="consoleFrame" class="llm-frame" :src="ssoUrl" frameborder="0"
+        allow="clipboard-write; clipboard-read" @load="onFrameLoad"></iframe>
+    </div>
+  </div>
+
+  <!-- =======页面独有======= -->
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/lang/index.js"></script>
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/mobile/mfm301/js/llm.js"></script>

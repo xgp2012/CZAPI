@@ -1,0 +1,110 @@
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/admin/css/llm.css" />
+<!-- =======内容区域=======  -->
+
+<div id="content" class="template" v-cloak>
+  <com-config>
+    <t-card class="list-card-container">
+      <ul class="common-tab llm-gw-tab">
+        <li><a href="index.htm">{{lang.llm_gw_dashboard}}</a></li>
+        <li class="active"><a>{{lang.llm_gw_keys}}</a></li>
+        <li><a href="channel.htm">{{lang.llm_gw_channels}}</a></li>
+        <li><a href="redeem.htm">{{lang.llm_gw_redeem}}</a></li>
+        <li><a href="pushlog.htm">{{lang.llm_gw_pushlog}}</a></li>
+      </ul>
+
+      <div class="llm-gw-tip">{{lang.llm_gw_sync_tip}}</div>
+
+      <!-- 检索条 -->
+      <div class="llm-gw-search">
+        <t-input class="llm-gw-search-item" v-model="params.client_id" :placeholder="lang.llm_gw_client_id"
+          clearable @enter.native="search"></t-input>
+        <t-input class="llm-gw-search-item" v-model="params.host_id" :placeholder="lang.llm_gw_host_id"
+          clearable @enter.native="search"></t-input>
+        <t-input class="llm-gw-search-item" v-model="params.keyword" :placeholder="lang.llm_gw_key_name"
+          clearable @enter.native="search"></t-input>
+        <t-select class="llm-gw-search-item" v-model="params.status" :placeholder="lang.llm_gw_status" clearable
+          @change="search">
+          <t-option value="active" :label="lang.llm_gw_status_active"></t-option>
+          <t-option value="suspended" :label="lang.llm_gw_status_suspended"></t-option>
+          <t-option value="revoked" :label="lang.llm_gw_status_revoked"></t-option>
+        </t-select>
+        <t-button theme="primary" @click="search">{{lang.llm_gw_search}}</t-button>
+        <t-button variant="outline" @click="reset">{{lang.llm_gw_reset}}</t-button>
+        <t-button theme="primary" variant="outline" @click="showSyncDialog">{{lang.llm_gw_sync_keys}}</t-button>
+      </div>
+
+      <!-- 列表 -->
+      <div class="llm-gw-table-wrap">
+        <t-table row-key="key_id" size="small" hover :data="list" :columns="columns" :loading="loading">
+          <template #key_id="slotProps">
+            <span class="llm-gw-mono">#{{slotProps.row.key_id}}</span>
+          </template>
+          <template #prefix="slotProps">
+            <span class="llm-gw-mono">{{slotProps.row.prefix || '--'}}</span>
+          </template>
+          <template #status="slotProps">
+            <t-tag size="small" variant="light"
+              :theme="slotProps.row.status === 'active' ? 'success' : (slotProps.row.status === 'suspended' ? 'warning' : 'default')">
+              {{statusText(slotProps.row.status)}}
+            </t-tag>
+          </template>
+          <template #models="slotProps">
+            <span class="llm-gw-ellipsis">
+              {{(slotProps.row.models && slotProps.row.models.length) ? slotProps.row.models.join(', ') : '--'}}
+            </span>
+          </template>
+          <template #ip_whitelist="slotProps">
+            <span class="llm-gw-ellipsis">
+              {{(slotProps.row.ip_whitelist && slotProps.row.ip_whitelist.length) ? slotProps.row.ip_whitelist.join(', ') : '--'}}
+            </span>
+          </template>
+          <template #expires_at="slotProps">
+            <span>{{slotProps.row.expires_at ? formatTime(slotProps.row.expires_at) : lang.llm_gw_never_expire}}</span>
+          </template>
+          <template #created_at="slotProps">
+            <span>{{slotProps.row.created_at ? formatTime(slotProps.row.created_at) : '--'}}</span>
+          </template>
+          <template #op="{row}">
+            <t-button size="small" variant="text" theme="warning"
+              v-if="row.status === 'active'" @click="changeStatus(row,'suspended')">
+              {{lang.llm_gw_ban}}
+            </t-button>
+            <t-button size="small" variant="text" theme="success"
+              v-if="row.status === 'suspended'" @click="changeStatus(row,'active')">
+              {{lang.llm_gw_unban}}
+            </t-button>
+            <t-button size="small" variant="text" theme="danger"
+              v-if="row.status !== 'revoked'" @click="revokeKey(row)">
+              {{lang.llm_gw_revoke}}
+            </t-button>
+          </template>
+        </t-table>
+      </div>
+
+      <div class="llm-gw-pager">
+        <t-pagination v-if="total > 0" :total="total" :current="params.page" :page-size="params.limit"
+          :page-size-options="[10,20,50,100]" show-jumper @current-change="onPageChange"
+          @page-size-change="onPageSizeChange"></t-pagination>
+      </div>
+    </t-card>
+
+    <!-- 从网关刷新 -->
+    <t-dialog :header="lang.llm_gw_sync_keys" :visible.sync="syncVisible" :footer="false" destroy-on-close>
+      <t-form label-align="left" :label-width="100" @submit="doSync">
+        <t-form-item :label="lang.llm_gw_client_id">
+          <t-input v-model="syncForm.client_id" :placeholder="lang.llm_gw_client_id"></t-input>
+        </t-form-item>
+        <t-form-item>
+          <div class="llm-gw-actions" style="margin-bottom:0;">
+            <t-button theme="primary" type="submit" :loading="syncing">{{lang.llm_gw_confirm}}</t-button>
+            <t-button variant="outline" @click="syncVisible = false">{{lang.llm_gw_cancel}}</t-button>
+          </div>
+        </t-form-item>
+      </t-form>
+    </t-dialog>
+  </com-config>
+</div>
+
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/js/lang.js"></script>
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/api/llm.js"></script>
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/js/key.js"></script>

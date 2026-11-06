@@ -1,0 +1,432 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-app);
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure {
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-tight);
+  font-weight: 620;
+  letter-spacing: -0.012em;
+}
+
+h2 {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-tight);
+  font-weight: 600;
+  letter-spacing: -0.008em;
+}
+
+h3 {
+  font-size: var(--fs-md);
+  line-height: var(--lh-snug);
+  font-weight: 600;
+}
+
+a {
+  color: var(--steel);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+code,
+kbd,
+pre,
+samp,
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'zero' 1;
+}
+
+button {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink-1);
+}
+
+/* ---- scrollbars -------------------------------------------------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--line-strong);
+  background-clip: content-box;
+}
+
+/* =================================================================
+   Shared primitives
+   ================================================================= */
+
+/* Page frame ------------------------------------------------------ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  padding: var(--sp-8) var(--sp-10) var(--sp-12);
+  max-width: 1560px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--line-1);
+}
+
+.page-head__title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.page-head__desc {
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+  max-width: 68ch;
+}
+
+.page-head__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+/* Panel ---------------------------------------------------------- */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--line-1);
+  min-height: 52px;
+}
+
+.panel__title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-1);
+}
+
+.panel__hint {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+.panel__body {
+  padding: var(--sp-5);
+}
+
+.panel__body--flush {
+  padding: 0;
+}
+
+/* Numeric cells --------------------------------------------------- */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+.dim {
+  color: var(--ink-4);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  justify-content: flex-end;
+}
+
+/* Badge ----------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  line-height: 18px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge--ok {
+  color: var(--ok);
+  background: var(--ok-soft);
+  border-color: color-mix(in srgb, var(--ok) 26%, transparent);
+}
+
+.badge--warn {
+  color: var(--warn);
+  background: var(--warn-soft);
+  border-color: color-mix(in srgb, var(--warn) 26%, transparent);
+}
+
+.badge--danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 26%, transparent);
+}
+
+.badge--info {
+  color: var(--info);
+  background: var(--info-soft);
+  border-color: color-mix(in srgb, var(--info) 26%, transparent);
+}
+
+.badge--idle {
+  color: var(--ink-3);
+  background: var(--bg-inset);
+  border-color: var(--line-1);
+}
+
+.badge--no-dot::before {
+  display: none;
+}
+
+/* Key / id strings ------------------------------------------------ */
+.mono-tag {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  background: var(--bg-inset);
+  border: 1px solid var(--line-1);
+  color: var(--ink-2);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+/* Quota meter ----------------------------------------------------- */
+/* Unfilled track is intentionally dark so the bar reads as a gauge. */
+.meter {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-inset);
+  border: 1px solid var(--line-1);
+  overflow: hidden;
+}
+
+.meter__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.meter__fill--ok {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ok) 72%, transparent), var(--ok));
+}
+
+.meter__fill--warn {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--warn) 72%, transparent), var(--warn));
+}
+
+.meter__fill--danger {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--danger) 72%, transparent), var(--danger));
+}
+
+.meter__fill::after {
+  /* subtle top gloss so the bar looks like an instrument, not a div */
+  content: '';
+  position: absolute;
+  inset: 0 0 55% 0;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px 999px 0 0;
+}
+
+/* Skeleton ------------------------------------------------------- */
+.sk {
+  display: block;
+  border-radius: var(--r-xs);
+  background: linear-gradient(
+    90deg,
+    var(--bg-inset) 0%,
+    color-mix(in srgb, var(--bg-inset) 55%, var(--bg-hover)) 45%,
+    var(--bg-inset) 90%
+  );
+  background-size: 220% 100%;
+  animation: sk-slide 1.35s ease-in-out infinite;
+}
+
+@keyframes sk-slide {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -40% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation: none;
+  }
+  .meter__fill {
+    transition: none;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Code blocks ---------------------------------------------------- */
+.codeblock {
+  position: relative;
+  background: var(--bg-sunken);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-sm);
+}
+
+.codeblock pre {
+  margin: 0;
+  padding: var(--sp-4) var(--sp-5);
+  overflow: auto;
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--ink-2);
+  max-height: 460px;
+}
+
+.codeblock__copy {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+}
+
+/* Utility -------------------------------------------------------- */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.stack--sm {
+  gap: var(--sp-2);
+}
+
+.grid {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.text-right {
+  text-align: right;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

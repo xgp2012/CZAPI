@@ -1,0 +1,58 @@
+<!-- LLM 网关（pc/default 主题）
+     页面独有样式 -->
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/clientarea/pc/default/css/llm.css">
+
+</head>
+
+<body>
+  <!-- mounted 之前显示 -->
+  <div id="mainLoading">
+    <div class="ddr ddr1"></div>
+    <div class="ddr ddr2"></div>
+    <div class="ddr ddr3"></div>
+    <div class="ddr ddr4"></div>
+    <div class="ddr ddr5"></div>
+  </div>
+
+  <div class="template llm-page-wrapper">
+    <el-container>
+      <aside-menu></aside-menu>
+      <el-container>
+        <top-menu></top-menu>
+        <el-main class="llm-page-main">
+          <!--
+            iframe 壳：V10 是 Vue2 + Element UI，我们的控制台是 Vue3，
+            因此这一页不放业务表单，只负责：
+              1) 调 GET console/v1/llm/sso-ticket 拿到一次性 sso_url
+              2) 把 sso_url 赋给 iframe.src
+              3) iframe 加载完成后隐藏 loading
+            真正的 Key 管理、模型、用量、卡密全部在网关 Vue3 控制台里（plan §8.5）。
+          -->
+          <div class="llm-shell">
+            <div class="llm-shell-title">{{lang.llm_title}}</div>
+            <div class="llm-shell-desc">{{lang.llm_desc}}</div>
+
+            <!-- 加载中 -->
+            <div class="llm-loading" v-if="loading">
+              <div class="llm-spinner"></div>
+              <div class="llm-loading-text">{{lang.llm_loading}}</div>
+            </div>
+
+            <!-- 出错（票据获取失败 / 网关不可达） -->
+            <div class="llm-error" v-if="!loading && errorMsg">
+              <div class="llm-error-text">{{errorMsg}}</div>
+              <el-button type="primary" size="small" @click="loadTicket">{{lang.llm_retry}}</el-button>
+            </div>
+
+            <!-- 控制台 -->
+            <iframe v-show="!loading && !errorMsg" ref="consoleFrame" class="llm-frame" :src="ssoUrl"
+              frameborder="0" allow="clipboard-write; clipboard-read" @load="onFrameLoad"></iframe>
+          </div>
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
+
+  <!-- =======页面独有======= -->
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/lang/index.js"></script>
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/pc/default/js/llm.js"></script>

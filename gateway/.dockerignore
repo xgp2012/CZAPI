@@ -1,0 +1,16 @@
+.github
+.git
+*.md
+.vscode
+.gitignore
+Makefile
+docs
+.eslintcache
+.gocache
+/web/node_modules
+/web/dist
+/admin-ui/node_modules
+# admin-ui 的产物落在 ../adminui/dist，不在 admin-ui/dist；
+# 注意不要忽略 /adminui/dist —— go:embed 需要它。
+/admin-ui/dist
+!THIRD-PARTY-LICENSES.md

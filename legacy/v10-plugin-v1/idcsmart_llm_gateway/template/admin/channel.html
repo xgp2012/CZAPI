@@ -1,0 +1,96 @@
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/admin/css/llm.css" />
+<!-- =======内容区域=======  -->
+
+<div id="content" class="template" v-cloak>
+  <com-config>
+    <t-card class="list-card-container">
+      <ul class="common-tab llm-gw-tab">
+        <li><a href="index.htm">{{lang.llm_gw_dashboard}}</a></li>
+        <li><a href="key.htm">{{lang.llm_gw_keys}}</a></li>
+        <li class="active"><a>{{lang.llm_gw_channels}}</a></li>
+        <li><a href="redeem.htm">{{lang.llm_gw_redeem}}</a></li>
+        <li><a href="pushlog.htm">{{lang.llm_gw_pushlog}}</a></li>
+      </ul>
+
+      <div class="llm-gw-tip">{{lang.llm_gw_channel_tip}}</div>
+
+      <!-- 网关状态 -->
+      <div class="llm-gw-stat-grid">
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_gateway_status}}</div>
+          <div class="llm-gw-stat-value" :class="status.ok ? 'is-ok' : 'is-danger'">
+            <span class="llm-gw-dot" :class="status.ok ? 'ok' : 'bad'"></span>
+            {{status.ok ? lang.llm_gw_online : lang.llm_gw_offline}}
+          </div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_version}}</div>
+          <div class="llm-gw-stat-value">{{status.version || '--'}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_db}}</div>
+          <div class="llm-gw-stat-value">{{status.db || '--'}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_cache}}</div>
+          <div class="llm-gw-stat-value">{{status.cache || '--'}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_queue}}</div>
+          <div class="llm-gw-stat-value">{{status.queue || '--'}}</div>
+        </div>
+      </div>
+
+      <div class="llm-gw-warn" v-if="status.error">{{status.error}}</div>
+
+      <!-- 功能开关 -->
+      <div class="llm-gw-search" v-if="flagList.length">
+        <t-tag v-for="(flag, index) in flagList" :key="index" variant="light"
+          :theme="flag.value ? 'success' : 'default'" style="margin-right:8px;">
+          {{flag.name}}: {{flag.value ? 'ON' : 'OFF'}}
+        </t-tag>
+      </div>
+
+      <!-- 模型目录 -->
+      <div class="llm-gw-search">
+        <t-input class="llm-gw-search-item" v-model="keyword" :placeholder="lang.llm_gw_model_name" clearable
+          @enter.native="getModels"></t-input>
+        <t-button theme="primary" @click="getModels">{{lang.llm_gw_search}}</t-button>
+        <t-button variant="outline" @click="syncModels">{{lang.llm_gw_sync_models}}</t-button>
+      </div>
+
+      <div class="llm-gw-table-wrap">
+        <t-table row-key="model_name" size="small" hover :data="models" :columns="columns" :loading="loading">
+          <template #model_name="slotProps">
+            <span class="llm-gw-mono">{{slotProps.row.model_name}}</span>
+          </template>
+          <template #capabilities="slotProps">
+            <t-tag v-for="(cap, i) in (slotProps.row.capabilities || [])" :key="i" size="small" variant="light"
+              style="margin-right:4px;">{{cap}}</t-tag>
+          </template>
+          <template #model_ratio="slotProps">
+            <span>{{ (slotProps.row.ratio && slotProps.row.ratio.model_ratio) || '--' }}</span>
+          </template>
+          <template #completion_ratio="slotProps">
+            <span>{{ (slotProps.row.ratio && slotProps.row.ratio.completion_ratio) || '--' }}</span>
+          </template>
+          <template #price_input="slotProps">
+            <span>{{priceText(slotProps.row,'input_micros_per_1m')}}</span>
+          </template>
+          <template #price_output="slotProps">
+            <span>{{priceText(slotProps.row,'output_micros_per_1m')}}</span>
+          </template>
+          <template #status="slotProps">
+            <t-tag size="small" variant="light" :theme="Number(slotProps.row.status) === 1 ? 'success' : 'default'">
+              {{Number(slotProps.row.status) === 1 ? 'ON' : 'OFF'}}
+            </t-tag>
+          </template>
+        </t-table>
+      </div>
+    </t-card>
+  </com-config>
+</div>
+
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/js/lang.js"></script>
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/api/llm.js"></script>
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/js/channel.js"></script>

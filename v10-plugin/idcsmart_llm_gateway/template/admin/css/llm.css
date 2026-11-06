@@ -1,0 +1,202 @@
+/*
+ * LLM 网关后台样式
+ *
+ * 只补充 TDesign 没覆盖的布局细节；颜色统一引用 TDesign 的 CSS 变量
+ * （--td-brand-color / --td-text-color-secondary 等），以便跟随 V10 的明暗主题切换。
+ */
+
+/* ===== 顶部页签（与官方插件的 common-tab 保持一致） ===== */
+.llm-gw-tab {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 0 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--td-component-stroke, #e7e7e7);
+  list-style: none;
+}
+
+.llm-gw-tab li a {
+  color: var(--td-text-color-secondary, #666);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.llm-gw-tab li.active a {
+  color: var(--td-brand-color, #0052d9);
+  font-weight: 600;
+}
+
+/* ===== 统计卡片 ===== */
+.llm-gw-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.llm-gw-stat {
+  padding: 16px;
+  border-radius: 6px;
+  background: var(--td-bg-color-container, #fff);
+  border: 1px solid var(--td-component-stroke, #e7e7e7);
+}
+
+.llm-gw-stat-label {
+  font-size: 13px;
+  color: var(--td-text-color-secondary, #666);
+  margin-bottom: 8px;
+}
+
+.llm-gw-stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--td-text-color-primary, #000);
+  line-height: 1.2;
+  word-break: break-all;
+}
+
+.llm-gw-stat-value.is-danger {
+  color: var(--td-error-color, #d54941);
+}
+
+.llm-gw-stat-value.is-ok {
+  color: var(--td-success-color, #2ba471);
+}
+
+/* ===== 搜索条 ===== */
+.llm-gw-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.llm-gw-search .llm-gw-search-item {
+  width: 180px;
+}
+
+.llm-gw-search .llm-gw-search-grow {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ===== 表格微调 ===== */
+.llm-gw-table-wrap {
+  margin-bottom: 12px;
+}
+
+.llm-gw-mono {
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  font-size: 12px;
+}
+
+.llm-gw-muted {
+  color: var(--td-text-color-placeholder, #999);
+}
+
+.llm-gw-ellipsis {
+  display: inline-block;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+/* ===== 徽标 ===== */
+.llm-gw-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--td-gray-color-5, #ccc);
+  vertical-align: middle;
+}
+
+.llm-gw-dot.ok {
+  background: var(--td-success-color, #2ba471);
+}
+
+.llm-gw-dot.bad {
+  background: var(--td-error-color, #d54941);
+}
+
+/* ===== 明文卡密展示区 ===== */
+.llm-gw-code-box {
+  max-height: 360px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--td-component-stroke, #e7e7e7);
+  background: var(--td-bg-color-secondarycontainer, #f3f3f3);
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.9;
+  white-space: pre;
+}
+
+.llm-gw-warn {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--td-warning-color, #e37318);
+  background: var(--td-warning-color-1, #fef3e6);
+  color: var(--td-text-color-primary, #000);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.llm-gw-tip {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--td-brand-color, #0052d9);
+  background: var(--td-brand-color-1, #ecf2fe);
+  color: var(--td-text-color-secondary, #666);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ===== 分页容器 ===== */
+.llm-gw-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+/* ===== iframe 控制台入口按钮条 ===== */
+.llm-gw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* ===== 键值对展示（替代 t-descriptions，避免依赖可能缺失的组件） ===== */
+.llm-gw-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px 24px;
+}
+
+.llm-gw-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--td-component-stroke, #e7e7e7);
+}
+
+.llm-gw-kv-label {
+  font-size: 13px;
+  color: var(--td-text-color-secondary, #666);
+}
+
+.llm-gw-kv-value {
+  font-size: 14px;
+  color: var(--td-text-color-primary, #000);
+  word-break: break-all;
+}

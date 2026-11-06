@@ -1,0 +1,163 @@
+:root {
+  --cz-bg: #0f1419;
+  --cz-sidebar: #121a22;
+  --cz-sidebar-hover: #1b2631;
+  --cz-border: #22303d;
+  --cz-text: #d8e0e8;
+  --cz-accent: #3b82f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: #f5f7fa;
+  color: #1f2d3d;
+}
+
+/* 侧边栏：深色，和主内容区形成明确层级 */
+.cz-sidebar {
+  background: var(--cz-sidebar);
+  color: var(--cz-text);
+  border-right: 1px solid var(--cz-border);
+}
+
+.cz-logo {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #fff;
+  border-bottom: 1px solid var(--cz-border);
+}
+
+.cz-logo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--cz-accent);
+  flex: none;
+}
+
+.cz-sidebar .el-menu {
+  border-right: none;
+}
+
+.cz-header {
+  height: 60px;
+  background: #fff;
+  border-bottom: 1px solid #e4e7ed;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.cz-header-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.cz-page {
+  padding: 18px;
+}
+
+.cz-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.cz-pager {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 统计卡片 */
+.cz-stat {
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+
+.cz-stat-label {
+  font-size: 13px;
+  color: #7a8899;
+  margin-bottom: 8px;
+}
+
+.cz-stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.cz-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.cz-login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(1200px 600px at 50% -10%, #1e3a5f 0%, #0f1419 55%);
+}
+
+.cz-login-card {
+  width: 380px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 28px 26px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.cz-login-title {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.cz-login-sub {
+  font-size: 13px;
+  color: #7a8899;
+  margin: 0 0 22px;
+}
+
+.cz-hint {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.6;
+  margin-top: 14px;
+}
+
+.cz-secret {
+  word-break: break-all;
+  background: #f4f6f8;
+  border: 1px dashed #c8d0da;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.7;
+}

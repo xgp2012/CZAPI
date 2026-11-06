@@ -1,0 +1,60 @@
+/*
+ * LLM 网关 iframe 壳样式（mobile/mfm301 模板）
+ */
+
+.llm-body {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  min-height: calc(100vh - 46px);
+  box-sizing: border-box;
+  background: #f7f8fa;
+}
+
+.llm-desc {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  color: #8890a4;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ===== iframe ===== */
+.llm-frame {
+  flex: 1;
+  width: 100%;
+  min-height: calc(100vh - 150px);
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* ===== loading ===== */
+.llm-loading {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+/* ===== error ===== */
+.llm-error {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 14px;
+  padding: 0 16px;
+}
+
+.llm-error-text {
+  color: #e34d59;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}

@@ -1,0 +1,109 @@
+/*
+ * LLM 网关 iframe 壳样式（pc/default 主题）
+ *
+ * 尽量只用布局属性，颜色引用 Element UI / 主题的 CSS 变量，跟随站点主题。
+ */
+
+.llm-page-main {
+  padding: 0;
+}
+
+.llm-page-wrapper .el-main {
+  padding: 12px 20px 20px;
+}
+
+.llm-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 620px;
+  padding: 16px 20px;
+  border-radius: 6px;
+  background: var(--main-card-background, #fff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.llm-shell-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--main-card-text-color, #333);
+  margin-bottom: 6px;
+}
+
+.llm-shell-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--main-card-text-color-2, #888);
+  margin-bottom: 14px;
+}
+
+/* ===== iframe ===== */
+.llm-frame {
+  flex: 1;
+  width: 100%;
+  min-height: 560px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+}
+
+/* ===== loading ===== */
+.llm-loading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 520px;
+  gap: 14px;
+}
+
+.llm-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(64, 158, 255, 0.2);
+  border-top-color: #409eff;
+  border-radius: 50%;
+  animation: llm-spin 0.9s linear infinite;
+}
+
+@keyframes llm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.llm-loading-text {
+  font-size: 13px;
+  color: var(--main-card-text-color-2, #888);
+}
+
+/* ===== error ===== */
+.llm-error {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  gap: 14px;
+}
+
+.llm-error-text {
+  font-size: 14px;
+  color: #f56c6c;
+  text-align: center;
+  line-height: 1.6;
+  max-width: 520px;
+}
+
+/* ===== 移动端兜底 ===== */
+@media screen and (max-width: 768px) {
+  .llm-shell {
+    padding: 12px;
+    min-height: 480px;
+  }
+
+  .llm-frame {
+    min-height: 420px;
+  }
+}

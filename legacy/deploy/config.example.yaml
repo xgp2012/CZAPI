@@ -1,0 +1,145 @@
+# CZAPI configuration
+#
+# Every value can be overridden by an environment variable named CZ_<SECTION>_<KEY>,
+# for example CZ_SERVER_ADDR or CZ_STORAGE_DSN. Environment wins over this file.
+#
+# DEFAULT IS THE ZERO-DEPENDENCY PROFILE: storage=memory, cache=memory. The
+# gateway runs and serves traffic with no MySQL and no Redis. Switch to mysql and
+# redis only when you have those services and have read docs/runbook.md.
+
+server:
+  addr: ":9999"
+  read_header_timeout: 10s
+  shutdown_timeout: 30s
+  # Set when the gateway sits behind a path prefix (e.g. /llm).
+  base_path: ""
+
+storage:
+  # memory | mysql
+  driver: memory
+  # Only used when driver=mysql. parseTime is forced on and the location is UTC.
+  #   czapi:secret@tcp(127.0.0.1:3306)/czapi?charset=utf8mb4
+  dsn: ""
+  max_open_conns: 50
+  max_idle_conns: 10
+  conn_max_lifetime: 30m
+  auto_migrate: false
+
+cache:
+  # memory | redis
+  driver: memory
+  addr: "127.0.0.1:6379"
+  password: ""
+  db: 0
+  pool_size: 0
+
+auth:
+  # Salt mixed into API key hashes. MUST be set to a long random value in
+  # production and MUST NOT change afterwards: every stored key hash depends on it.
+  key_hash_salt: ""
+  key_cache_ttl: 60s
+  # Admin console JWT. A random 32+ byte value is expected here.
+  admin_jwt_secret: ""
+  admin_jwt_issuer: "czapi"
+  admin_jwt_ttl: 12h
+  # Signed /internal/v1 requests: allowed clock drift and nonce retention.
+  internal_clock_skew: 300s
+  internal_nonce_ttl: 600s
+  # Development only. When true, /internal/v1 accepts unsigned calls. NEVER true
+  # in production: it removes the only authentication on the credit endpoint.
+  internal_allow_no_app: false
+
+billing:
+  # Micro-yuan charged per billed token (1 yuan = 1_000_000 micro-yuan).
+  token_to_micros: 1
+  # Used to estimate the pre-hold when the client omits max_tokens.
+  default_completion_tokens: 1024
+  # When false the gateway still meters every request but never deducts:
+  # every request is settled as PaidByFree. This is the global kill switch.
+  enforce_billing: true
+  # When true a second, independent cost calculation is stored alongside the
+  # billed one so a pricing change can be compared before rollout (plan §15.3).
+  shadow_mode: false
+
+relay:
+  connect_timeout: 10s
+  first_byte_timeout: 60s
+  total_timeout: 300s
+  stream_chunk_timeout: 120s
+  max_retries: 1
+  breaker_window: 30s
+  breaker_min_samples: 10
+  breaker_error_rate: 0.5
+  breaker_open_duration: 30s
+
+limits:
+  requests_per_minute: 60
+  tokens_per_minute: 100000
+  concurrency: 5
+  # Per-key daily spend cap, in micro-yuan (50 yuan). This is the blast-radius
+  # ceiling if a key leaks (plan §15.2 #2). 0 disables the cap.
+  key_daily_micros: 50000000
+  # Per-account monthly cap (500 yuan). 0 disables.
+  account_monthly_micros: 500000000
+  # Global daily cap (0 = disabled; set it only once you know the expected volume).
+  global_daily_micros: 0
+
+flags:
+  gateway_enabled: true
+  billing_enforced: true
+  module_autocreate_enabled: true
+  recharge_enabled: true
+
+log:
+  # debug | info | warn | error
+  level: info
+  # text | json
+  format: json
+
+metrics:
+  # Prometheus /metrics is served unauthenticated. Keep it on a private network
+  # or front it with your own auth.
+  enabled: true
+
+worker:
+  enabled: true
+  poll_interval: 15m
+  batch_size: 200
+  worker_backlog_alert: 1000
+
+console:
+  enabled: true
+  # Directory holding the built SPA. Missing build is not fatal: the gateway
+  # answers /console with a JSON notice instead of a 500.
+  dir: "internal/api/console/dist"
+
+internal:
+  # Sites allowed to call /internal/v1. Each entry is one V10 install.
+  # Generate the secret with: czapi-secret (or openssl rand -hex 32).
+  sites: []
+  #  - app_id: "v10-prod"
+  #    secret: "PUT_A_64_HEX_CHAR_SECRET_HERE"
+  #    secret_prev: ""            # set during rotation, cleared after
+  #    name: "Production V10"
+  #    ip_allow: []               # empty = any source IP
+  #    enabled: true
+
+# First-run bootstrap.
+#
+# These resources are only created when they do not already exist, so restarting
+# the gateway never resets a password or rotates a secret. Once you have replaced
+# the default administrator, set admin_password to "" to stop seeding an account.
+#
+# admin/admin is a first-run convenience. Before the console is reachable from any
+# untrusted network, sign in and change it (docs/runbook.md §2.1).
+bootstrap:
+  admin_username: admin
+  admin_password: admin
+  # Seeds one V10 site when internal.sites is empty. Leave default_site_secret
+  # empty to have a strong one generated and printed once at startup.
+  default_site_app_id: v10
+  default_site_secret: ""
+  # Seeds a demo plan/model/channel so the console and /v1 have content to show.
+  # The demo channel holds a placeholder upstream key: replace it in the console.
+  # Turn this off for a production install.
+  demo_content: true

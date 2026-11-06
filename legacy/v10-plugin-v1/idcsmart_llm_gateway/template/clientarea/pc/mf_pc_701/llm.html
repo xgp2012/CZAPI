@@ -1,0 +1,39 @@
+<!-- LLM 网关（pc/mf_pc_701 主题）
+     页面独有样式 -->
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/clientarea/pc/mf_pc_701/css/llm.css">
+</head>
+
+<body>
+  <!--
+    iframe 壳：主题各自一份。
+    业务逻辑全部在 js/llm.js —— 调 console/v1/llm/sso-ticket 换 sso_url，再赋给 iframe.src。
+  -->
+  <div id="app" class="llm-page-root" v-cloak>
+    <common-layout main-class="llm-page-main">
+      <main class="llm-page">
+        <section class="llm-card member-card">
+          <header class="llm-card-head">
+            <h2 class="llm-card-title">{{lang.llm_title}}</h2>
+            <p class="llm-card-desc">{{lang.llm_desc}}</p>
+          </header>
+
+          <div class="llm-loading" v-if="loading">
+            <div class="llm-spinner"></div>
+            <div class="llm-loading-text">{{lang.llm_loading}}</div>
+          </div>
+
+          <div class="llm-error" v-if="!loading && errorMsg">
+            <div class="llm-error-text">{{errorMsg}}</div>
+            <button class="llm-btn" @click="loadTicket">{{lang.llm_retry}}</button>
+          </div>
+
+          <iframe v-show="!loading && !errorMsg" ref="consoleFrame" class="llm-frame" :src="ssoUrl" frameborder="0"
+            allow="clipboard-write; clipboard-read" @load="onFrameLoad"></iframe>
+        </section>
+      </main>
+    </common-layout>
+  </div>
+
+  <script src="/{$template_catalog}/template/{$public_themes}/components/pagination/pagination.js"></script>
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/lang/index.js"></script>
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/pc/mf_pc_701/js/llm.js"></script>

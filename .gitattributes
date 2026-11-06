@@ -1,0 +1,32 @@
+# 统一换行符为 LF。仓库是 Linux 部署 + GitHub Actions 构建，
+# 如果 .sh/.php/.yml 被 checkout 成 CRLF，Linux 上会直接报
+# "bad interpreter: /usr/bin/env bash^M"。
+* text=auto eol=lf
+
+# 明确按文本处理并强制 LF
+*.go     text eol=lf
+*.php    text eol=lf
+*.sh     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.json   text eol=lf
+*.md     text eol=lf
+*.js     text eol=lf
+*.ts     text eol=lf
+*.vue    text eol=lf
+*.css    text eol=lf
+*.html   text eol=lf
+Dockerfile text eol=lf
+*.example text eol=lf
+*.conf   text eol=lf
+
+# 二进制文件不要做换行转换
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.gz   binary
+*.zip  binary

@@ -1,0 +1,44 @@
+<!-- LLM 网关（mobile/mfm201 模板）
+     页面引入样式位置 -->
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/clientarea/mobile/mfm201/css/llm.css">
+</head>
+
+<body>
+  <!--
+    iframe 壳（移动端）。本模板为 Vue3 + Vant（源码实证：Vue.createApp + app.use(vant).mount("#template")）。
+    逻辑全部在 js/llm.js：调 console/v1/llm/sso-ticket 拿 sso_url -> 赋给 iframe.src。
+  -->
+  <div id="template" v-cloak>
+    <top-menu neednav>
+      <template #left>
+        <van-icon @click="goBack" class="left-icon" name="arrow-left"></van-icon>
+      </template>
+      <template #center>
+        <div class="nav-title">{{lang.llm_title}}</div>
+      </template>
+      <template #right>
+      </template>
+    </top-menu>
+
+    <div class="llm-mobile-body">
+      <div class="llm-mobile-desc">{{lang.llm_desc}}</div>
+
+      <div class="llm-mobile-loading" v-if="loading">
+        <van-loading size="24" vertical>{{lang.llm_loading}}</van-loading>
+      </div>
+
+      <div class="llm-mobile-error" v-if="!loading && errorMsg">
+        <div class="llm-mobile-error-text">{{errorMsg}}</div>
+        <van-button type="primary" size="small" @click="loadTicket">{{lang.llm_retry}}</van-button>
+      </div>
+
+      <iframe v-show="!loading && !errorMsg" ref="consoleFrame" class="llm-mobile-frame" :src="ssoUrl" frameborder="0"
+        allow="clipboard-write; clipboard-read" @load="onFrameLoad"></iframe>
+
+      <div class="llm-mobile-tip" v-if="!loading && !errorMsg">{{lang.llm_frame_hint}}</div>
+    </div>
+  </div>
+
+  <!-- =======页面独有======= -->
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/lang/index.js"></script>
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/mobile/mfm201/js/llm.js"></script>

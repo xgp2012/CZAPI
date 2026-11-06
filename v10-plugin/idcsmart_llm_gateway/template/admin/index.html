@@ -1,0 +1,120 @@
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/admin/css/llm.css" />
+<!-- =======内容区域=======  -->
+
+<div id="content" class="template" v-cloak>
+  <com-config>
+    <t-card class="list-card-container">
+      <ul class="common-tab llm-gw-tab">
+        <li class="active"><a>{{lang.llm_gw_dashboard}}</a></li>
+        <li><a href="key.htm">{{lang.llm_gw_keys}}</a></li>
+        <li><a href="channel.htm">{{lang.llm_gw_channels}}</a></li>
+        <li><a href="redeem.htm">{{lang.llm_gw_redeem}}</a></li>
+        <li><a href="pushlog.htm">{{lang.llm_gw_pushlog}}</a></li>
+      </ul>
+
+      <!-- 网关状态 -->
+      <div class="llm-gw-stat-grid">
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_gateway_status}}</div>
+          <div class="llm-gw-stat-value" :class="dashboard.health_ok ? 'is-ok' : 'is-danger'">
+            <span class="llm-gw-dot" :class="dashboard.health_ok ? 'ok' : 'bad'"></span>
+            {{dashboard.health_ok ? lang.llm_gw_online : lang.llm_gw_offline}}
+          </div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_version}}</div>
+          <div class="llm-gw-stat-value">{{dashboard.health.version || '--'}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_db}}</div>
+          <div class="llm-gw-stat-value">{{dashboard.health.db || '--'}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_cache}}</div>
+          <div class="llm-gw-stat-value">{{dashboard.health.cache || '--'}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_queue}}</div>
+          <div class="llm-gw-stat-value">{{dashboard.health.queue || '--'}}</div>
+        </div>
+      </div>
+
+      <!-- 网关不可达时的错误行 -->
+      <div class="llm-gw-warn" v-if="!dashboard.health_ok && dashboard.health.error">
+        {{dashboard.health.error}}
+      </div>
+
+      <!-- 本地数据概况 -->
+      <div class="llm-gw-stat-grid">
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_key_total}}</div>
+          <div class="llm-gw-stat-value">{{dashboard.key_total || 0}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_key_active}}</div>
+          <div class="llm-gw-stat-value is-ok">{{dashboard.key_active || 0}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_key_suspended}}</div>
+          <div class="llm-gw-stat-value">{{dashboard.key_suspended || 0}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_key_revoked}}</div>
+          <div class="llm-gw-stat-value llm-gw-muted">{{dashboard.key_revoked || 0}}</div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_push_failed}}</div>
+          <div class="llm-gw-stat-value" :class="dashboard.push_failed > 0 ? 'is-danger' : ''">
+            {{dashboard.push_failed || 0}}
+          </div>
+        </div>
+        <div class="llm-gw-stat">
+          <div class="llm-gw-stat-label">{{lang.llm_gw_redeem_total}}</div>
+          <div class="llm-gw-stat-value">{{dashboard.redeem_total || 0}}</div>
+        </div>
+      </div>
+
+      <!-- 连接配置（只读，脱敏） -->
+      <t-card :title="lang.llm_gw_quick_links" :bordered="false" style="margin-bottom:16px;">
+        <div class="llm-gw-actions">
+          <t-button theme="primary" variant="outline" @click="goConfigPage">{{lang.llm_gw_config_page}}</t-button>
+          <t-button variant="outline" @click="loadDashboard">{{lang.llm_gw_search}}</t-button>
+          <t-button variant="outline" @click="retryAll">{{lang.llm_gw_pushlog_retry_all}}</t-button>
+        </div>
+        <!-- 用普通布局而不是 t-descriptions：后者在部分 TDesign 版本里不存在，避免白屏 -->
+        <div class="llm-gw-kv-grid">
+          <div class="llm-gw-kv">
+            <div class="llm-gw-kv-label">{{lang.llm_gw_gateway_url}}</div>
+            <div class="llm-gw-kv-value llm-gw-mono">{{config.gateway_base_url || '--'}}</div>
+          </div>
+          <div class="llm-gw-kv">
+            <div class="llm-gw-kv-label">{{lang.llm_gw_app_id}}</div>
+            <div class="llm-gw-kv-value llm-gw-mono">{{config.app_id || '--'}}</div>
+          </div>
+          <div class="llm-gw-kv">
+            <div class="llm-gw-kv-label">{{lang.llm_gw_app_secret}}</div>
+            <div class="llm-gw-kv-value llm-gw-mono">
+              {{config.app_secret_tail || '--'}}
+              <span class="llm-gw-muted">（{{lang.llm_gw_secret_tip}}）</span>
+            </div>
+          </div>
+          <div class="llm-gw-kv">
+            <div class="llm-gw-kv-label">{{lang.llm_gw_uninstall_policy}}</div>
+            <div class="llm-gw-kv-value">
+              <t-select v-model="config.keep_data_on_uninstall" style="width:260px"
+                @change="changeUninstallPolicy">
+                <t-option value="1" :label="lang.llm_gw_uninstall_keep"></t-option>
+                <t-option value="0" :label="lang.llm_gw_uninstall_drop"></t-option>
+              </t-select>
+            </div>
+          </div>
+        </div>
+        <div class="llm-gw-tip" style="margin-top:12px;margin-bottom:0;">{{lang.llm_gw_uninstall_tip}}</div>
+      </t-card>
+    </t-card>
+  </com-config>
+</div>
+
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/js/lang.js"></script>
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/api/llm.js"></script>
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/js/index.js"></script>

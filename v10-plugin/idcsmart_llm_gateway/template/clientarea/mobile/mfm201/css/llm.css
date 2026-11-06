@@ -1,0 +1,70 @@
+/*
+ * LLM 网关 iframe 壳样式（mobile/mfm201 模板）
+ *
+ * 移动端：把控制台 iframe 撑满可视区，避免出现内部滚动条套滚动条。
+ */
+
+.llm-mobile-body {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  min-height: calc(100vh - 46px);
+  box-sizing: border-box;
+  background: #f5f6f8;
+}
+
+.llm-mobile-desc {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff;
+  color: #8890a4;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ===== iframe ===== */
+.llm-mobile-frame {
+  flex: 1;
+  width: 100%;
+  min-height: calc(100vh - 160px);
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* ===== loading ===== */
+.llm-mobile-loading {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+/* ===== error ===== */
+.llm-mobile-error {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 14px;
+  padding: 0 16px;
+}
+
+.llm-mobile-error-text {
+  color: #e34d59;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.llm-mobile-tip {
+  padding: 10px 2px 0;
+  color: #b0b6c4;
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.5;
+}

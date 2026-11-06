@@ -1,0 +1,69 @@
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/admin/css/llm.css" />
+<!-- =======内容区域=======  -->
+
+<div id="content" class="template" v-cloak>
+  <com-config>
+    <t-card class="list-card-container">
+      <ul class="common-tab llm-gw-tab">
+        <li><a href="index.htm">{{lang.llm_gw_dashboard}}</a></li>
+        <li><a href="key.htm">{{lang.llm_gw_keys}}</a></li>
+        <li><a href="channel.htm">{{lang.llm_gw_channels}}</a></li>
+        <li><a href="redeem.htm">{{lang.llm_gw_redeem}}</a></li>
+        <li class="active"><a>{{lang.llm_gw_pushlog}}</a></li>
+      </ul>
+
+      <div class="llm-gw-tip">{{lang.llm_gw_pushlog_tip}}</div>
+
+      <div class="llm-gw-search">
+        <t-select class="llm-gw-search-item" v-model="params.status" :placeholder="lang.llm_gw_pushlog_status"
+          clearable @change="search">
+          <t-option value="pending" :label="lang.llm_gw_pushlog_pending"></t-option>
+          <t-option value="failed" :label="lang.llm_gw_pushlog_failed"></t-option>
+          <t-option value="done" :label="lang.llm_gw_pushlog_done"></t-option>
+        </t-select>
+        <t-input class="llm-gw-search-item" v-model="params.ref_id" :placeholder="lang.llm_gw_pushlog_ref" clearable
+          @enter.native="search"></t-input>
+        <t-button theme="primary" @click="search">{{lang.llm_gw_search}}</t-button>
+        <t-button variant="outline" @click="reset">{{lang.llm_gw_reset}}</t-button>
+        <t-button theme="warning" variant="outline" @click="retryAll" :loading="retrying">
+          {{lang.llm_gw_pushlog_retry_all}}
+        </t-button>
+      </div>
+
+      <div class="llm-gw-table-wrap">
+        <t-table row-key="id" size="small" hover :data="list" :columns="columns" :loading="loading">
+          <template #status="slotProps">
+            <t-tag size="small" variant="light"
+              :theme="slotProps.row.status === 'done' ? 'success' : (slotProps.row.status === 'failed' ? 'danger' : 'warning')">
+              {{statusText(slotProps.row.status)}}
+            </t-tag>
+          </template>
+          <template #next_retry_at="slotProps">
+            <span>{{slotProps.row.next_retry_at ? formatTime(slotProps.row.next_retry_at) : '--'}}</span>
+          </template>
+          <template #create_time="slotProps">
+            <span>{{formatTime(slotProps.row.create_time)}}</span>
+          </template>
+          <template #last_error="slotProps">
+            <span class="llm-gw-ellipsis" :title="slotProps.row.last_error">{{slotProps.row.last_error || '--'}}</span>
+          </template>
+          <template #op="{row}">
+            <t-button size="small" variant="text" theme="primary" v-if="row.status !== 'done'"
+              @click="retryOne(row)">
+              {{lang.llm_gw_pushlog_retry}}
+            </t-button>
+          </template>
+        </t-table>
+      </div>
+
+      <div class="llm-gw-pager">
+        <t-pagination v-if="total > 0" :total="total" :current="params.page" :page-size="params.limit"
+          :page-size-options="[10,20,50,100]" show-jumper @current-change="onPageChange"></t-pagination>
+      </div>
+    </t-card>
+  </com-config>
+</div>
+
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/js/lang.js"></script>
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/api/llm.js"></script>
+<script src="/plugins/addon/idcsmart_llm_gateway/template/admin/js/pushlog.js"></script>

@@ -1,0 +1,37 @@
+<!-- LLM 网关（pc/mf801 主题）
+     页面独有样式 -->
+<link rel="stylesheet" href="/plugins/addon/idcsmart_llm_gateway/template/clientarea/pc/mf801/css/llm.css">
+</head>
+
+<body>
+  <!--
+    iframe 壳（主题各自一份，源码实证 V10 前台按主题分目录，缺目录时不保证回落 default）。
+    内容全部来自 js/llm.js：调 console/v1/llm/sso-ticket 换取 sso_url -> 赋给 iframe.src。
+  -->
+  <div id="app" class="llm-page" v-cloak>
+    <common-layout main-class="llm-page-main">
+      <div class="llm-body">
+        <div class="llm-header">
+          <div class="llm-title">{{lang.llm_title}}</div>
+          <div class="llm-subtitle">{{lang.llm_desc}}</div>
+        </div>
+
+        <div class="llm-loading" v-if="loading">
+          <div class="llm-spinner"></div>
+          <div class="llm-loading-text">{{lang.llm_loading}}</div>
+        </div>
+
+        <div class="llm-error" v-if="!loading && errorMsg">
+          <div class="llm-error-text">{{errorMsg}}</div>
+          <button class="llm-btn" @click="loadTicket">{{lang.llm_retry}}</button>
+        </div>
+
+        <iframe v-show="!loading && !errorMsg" ref="consoleFrame" class="llm-frame" :src="ssoUrl" frameborder="0"
+          allow="clipboard-write; clipboard-read" @load="onFrameLoad"></iframe>
+      </div>
+    </common-layout>
+  </div>
+
+  <!-- =======页面独有======= -->
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/lang/index.js"></script>
+  <script src="/plugins/addon/idcsmart_llm_gateway/template/clientarea/pc/mf801/js/llm.js"></script>

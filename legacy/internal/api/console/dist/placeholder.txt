@@ -1,0 +1,6 @@
+This file keeps the Go embed directive valid on a checkout where the console has
+not been built yet: //go:embed fails to compile if its pattern matches nothing.
+
+"pnpm build" in web/ writes the real assets into this directory and replaces
+this file. A binary built from an unbuilt tree serves a JSON notice at /console
+instead of failing to start.

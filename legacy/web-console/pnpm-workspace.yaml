@@ -1,0 +1,7 @@
+# pnpm 10 requires explicit approval for dependency build scripts.
+# esbuild needs its postinstall to place the platform binary; vue-demi's
+# postinstall picks the Vue 3 build; @parcel/watcher is a sass/dev optional.
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  vue-demi: true
